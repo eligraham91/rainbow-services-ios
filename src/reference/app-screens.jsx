@@ -63,31 +63,31 @@ function OnboardingWelcome({ onNext, onExit }) {
           </p>
         </div>
 
-        <div style={{
-          ...vis(4),
-          display: 'flex',
-          justifyContent: 'center',
-          marginTop: 72,
-        }}>
-          <img
-            src="/assets/illustrations/open-hand.png"
-            alt=""
-            aria-hidden="true"
-            style={{
-              width: 112,
-              height: 112,
-              objectFit: 'cover',
-              border: `1px solid ${C.ruleLineSoft}`,
-              background: C.creamCardSoft,
-            }}
-          />
+        {/* Body para 2 — step 4 */}
+        <div style={{ ...vis(4), marginBottom: 16 }}>
+          <p style={{
+            fontFamily: "'Inter', sans-serif", fontSize: 14,
+            lineHeight: 1.65, color: C.inkMuted, margin: 0,
+          }}>
+            No account required. Nothing is saved by default. You stay in control of what you share and when.
+          </p>
+        </div>
+
+        {/* Body para 3 — step 5 */}
+        <div style={vis(5)}>
+          <p style={{
+            fontFamily: "'Inter', sans-serif", fontSize: 14,
+            lineHeight: 1.65, color: C.inkMuted, margin: 0,
+          }}>
+            Start here to find support, safety tools, and one clear next step — privately, on your terms.
+          </p>
         </div>
 
         <div style={{ flex: 1 }} />
 
         {/* Bottom action: advance button or final CTA */}
         <div style={{ marginBottom: 18 }}>
-          {step >= 5 ? (
+          {step >= 6 ? (
             <div style={{ animation: 'fadeUp 0.4s ease both', display: 'flex', flexDirection: 'column', gap: 10 }}>
               <PrimaryButton label="Begin privately" onClick={onNext} />
               <div style={{ textAlign: 'center' }}>
