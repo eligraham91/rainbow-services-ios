@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Rainbow Services">
+  <rect width="512" height="512" rx="112" fill="#f7f0e4"/>
+  <path d="M126 304c0-85.1 58.9-154 131.5-154S389 218.9 389 304" fill="none" stroke="#5b3f8c" stroke-width="36" stroke-linecap="round"/>
+  <path d="M172 304c0-55.2 38.3-100 85.5-100S343 248.8 343 304" fill="none" stroke="#c85f51" stroke-width="30" stroke-linecap="round"/>
+  <path d="M214 304c0-28 19.5-50.8 43.5-50.8S301 276 301 304" fill="none" stroke="#d5a43b" stroke-width="26" stroke-linecap="round"/>
+  <circle cx="257" cy="342" r="32" fill="#26211d"/>
+</svg>

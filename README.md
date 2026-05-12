@@ -1,29 +1,31 @@
-# Rainbow Services iOS Demo Prototype
+# Rainbow Services Start Here Prototype
 
-This repository contains a SwiftUI-first prototype for exploring a native Rainbow Services iOS app experience.
+This repository contains the **Start Here** stakeholder preview for Rainbow Services. The current review path is a mobile-first PWA so staff, board members, donors, and collaborators can open the app experience on iPhone without TestFlight.
 
 ## What is included
 
-- `RainbowDemoApp.swift` entry point with a native `TabView` shell.
-- A Home screen with an iOS-style summary card, segmented filter, and status rows.
-- A Knowledge hub list flow for future service, safety, and organization content.
-- A Profile form using standard iOS form controls.
+- A Vite + React PWA prototype built from the supplied `iOS app (1).zip` Start Here design files.
+- PWA metadata, safe-area viewport settings, manifest support, and a service worker.
+- Netlify build settings for shareable preview deploys.
+- Supplied Rainbow assets under `public/assets`.
+- The earlier SwiftUI prototype in `RainbowDemo/` as a native reference track.
 
-## iOS UX Direction
+## Review Workflow
 
-This demo intentionally prioritizes iOS-native interaction patterns over web layout conventions:
+Use the PWA first for low-friction concept review:
 
-1. Bottom tab navigation for primary sections.
-2. Large titles and `NavigationStack` for modern iOS hierarchy.
-3. System colors and materials for Light Mode, Dark Mode, and accessibility behavior.
-4. Segmented controls and compact cards for glanceable care workflows.
-5. SF Symbols and restrained text hierarchy for one-handed mobile use.
+```sh
+npm install
+npm run dev
+```
 
-## Next Integration Step
+Reviewers can open the deployed Netlify preview link in iPhone Safari and optionally add it to the Home Screen.
 
-Map the attached brand files into the prototype:
+## Design Source
 
-- voice guidance into screen copy,
-- imagery guidance into icon and visual direction,
-- knowledge material into the Knowledge Hub taxonomy,
-- visual-system guidance into final color tokens and component refinements.
+The prototype follows the supplied Start Here UX specification:
+
+- product name: `Start Here`
+- palette: cream base, ink text, restrained purple, safety red only for Quick Exit/safety contexts
+- flow: onboarding, privacy, mode selection, Situation Builder, Next Step Map, Tools, Find Help, Learn, Keep Free
+- principle: no login, no forced disclosure, no personal information required for preview

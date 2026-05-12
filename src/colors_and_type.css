@@ -1,0 +1,280 @@
+/* =========================================================
+   Rainbow Services — Design Tokens
+   colors_and_type.css
+   Foundation variables for color, typography, spacing, radii,
+   shadows, and semantic styles.
+   ========================================================= */
+
+/* --- Web fonts (substitutions flagged in README) --------
+   Display: Söhne Breit / GT America Expanded (commercial) →
+   substituted with Inter Tight (heavy, condensed feel) from
+   Google Fonts until licensed files are provided.
+   Body:    Inter (exact match, free on Google Fonts).
+   Accent:  Söhne italic → Inter italic substitution, flagged.
+   -------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@700;800;900&display=swap');
+
+:root {
+  /* -------- COLOR (locked palette) -------- */
+  --cream-base:     #F5F1E8;   /* page background */
+  --cream-card:     #EDE4CE;   /* raised surfaces / inset cards — meaningfully deeper than base */
+  --cream-card-soft:#F4EDDB;   /* subtle inset for nested cards on cream-card */
+  --ink-primary:    #1A1A1A;   /* body text, number cards */
+  --ink-muted:      #4A4A4A;   /* captions, footnotes, secondary */
+  --ink-card:       #141414;   /* darker still — for ink-reversed cards that need separation on near-black pages */
+  --purple-anchor:  #4A148C;   /* CTAs, primary interactive */
+  --purple-hover:   #6A1B9A;   /* hover state for purple-anchor */
+  --safety-red:     #C62828;   /* DV SAFETY MESSAGING ONLY */
+  --rule-line:      #C4B99E;   /* hairline dividers, card edges — earns the edge on cream */
+  --rule-line-soft: #D8CFB5;   /* lighter variant for nested / low-emphasis dividers */
+
+  /* -------- SEMANTIC COLOR -------- */
+  --bg:            var(--cream-base);
+  --surface:       var(--cream-card);
+  --fg:            var(--ink-primary);
+  --fg-muted:      var(--ink-muted);
+  --accent:        var(--purple-anchor);
+  --accent-hover:  var(--purple-hover);
+  --divider:       var(--rule-line);
+  --warn:          var(--safety-red);  /* DV safety only */
+
+  /* -------- TYPOGRAPHY FAMILIES -------- */
+  --font-display:  'Inter Tight', 'Söhne Breit', 'GT America Expanded', system-ui, sans-serif;
+  --font-body:     'Inter', system-ui, -apple-system, Segoe UI, sans-serif;
+  --font-accent:   'Inter', 'Söhne', Georgia, serif; /* italic used for editorial accent */
+
+  /* -------- TYPE SCALE -------- */
+  --fs-xs:      12px;
+  --fs-sm:      14px;
+  --fs-base:    17px;  /* body default */
+  --fs-lg:      20px;
+  --fs-xl:      24px;
+  --fs-2xl:     32px;
+  --fs-3xl:     44px;
+  --fs-4xl:     64px;
+  --fs-5xl:     96px;
+  --fs-6xl:     144px; /* stat displays */
+
+  /* -------- TYPE WEIGHTS -------- */
+  --fw-reg:     400;
+  --fw-med:     500;
+  --fw-semi:    600;
+  --fw-bold:    700;
+  --fw-heavy:   800;
+  --fw-black:   900;
+
+  /* -------- TYPE METRICS -------- */
+  --lh-tight:     1.05;
+  --lh-snug:      1.2;
+  --lh-normal:    1.55;  /* body default */
+  --lh-loose:     1.7;
+  --tracking-tight:   -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.08em;  /* eyebrow labels */
+  --tracking-wider:   0.14em;  /* bracketed eyebrows */
+  --prose-max:    68ch;
+
+  /* -------- SPACING (4px base) -------- */
+  --s-0:   0;
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:   12px;
+  --s-4:   16px;
+  --s-5:   24px;
+  --s-6:   32px;
+  --s-7:   48px;
+  --s-8:   64px;
+  --s-9:   96px;
+  --s-10:  128px;
+  --s-11:  192px;
+
+  /* -------- RADII (editorial, minimal rounding) -------- */
+  --radius-none:    0;
+  --radius-sm:      2px;
+  --radius-md:      4px;
+  --radius-lg:      8px;
+  --radius-pill:    999px;
+
+  /* -------- BORDERS -------- */
+  --hairline:       1px solid var(--rule-line);
+  --border-ink:     1px solid var(--ink-primary);
+
+  /* -------- SHADOWS (warm, editorial, used with intent) --------
+     Shadows are warm-neutral (not pure black) so they sit on cream
+     without reading cold. Layered: a 1px contact shadow + a soft lift.
+     ------------------------------------------------------------ */
+  --shadow-inset:     inset 0 1px 0 rgba(74,56,24,0.04);
+  --shadow-card:      0 1px 0 rgba(74,56,24,0.06), 0 2px 8px rgba(74,56,24,0.05);
+  --shadow-card-lift: 0 1px 0 rgba(74,56,24,0.08), 0 8px 20px rgba(74,56,24,0.10);  /* hover / active */
+  --shadow-raised:    0 2px 4px rgba(74,56,24,0.07), 0 16px 40px rgba(74,56,24,0.12); /* modals, overlays */
+  --shadow-focus:     0 0 0 3px rgba(74,20,140,0.28);
+
+  /* -------- LAYOUT -------- */
+  --container-max:  1280px;
+  --gutter:         var(--s-5);
+
+  /* -------- MOTION -------- */
+  --ease-out:    cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:    120ms;
+  --dur-base:    200ms;
+  --dur-slow:    360ms;
+
+  /* -------- Z-INDEX -------- */
+  --z-base:     1;
+  --z-raised:   10;
+  --z-overlay:  100;
+  --z-quick-exit: 9999;  /* must stay above everything */
+}
+
+/* =========================================================
+   Base element styles (semantic)
+   ========================================================= */
+
+html { background: var(--bg); color: var(--fg); }
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
+  font-weight: var(--fw-reg);
+  color: var(--fg);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* -------- Display headings (H1 / hero) -------- */
+h1, .h1 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size: clamp(var(--fs-4xl), 7vw, var(--fs-5xl));
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-tight);
+  color: var(--fg);
+  margin: 0 0 var(--s-5);
+  text-wrap: balance;
+}
+
+h2, .h2 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heavy);
+  font-size: clamp(var(--fs-2xl), 4vw, var(--fs-3xl));
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--s-4);
+  text-wrap: balance;
+}
+
+h3, .h3 {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-snug);
+  letter-spacing: var(--tracking-tight);
+  margin: 0 0 var(--s-3);
+}
+
+h4, .h4 {
+  font-family: var(--font-body);
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-xl);
+  line-height: var(--lh-snug);
+  margin: 0 0 var(--s-2);
+}
+
+/* -------- Eyebrow label: [ 01 / BRACKET ] motif -------- */
+.eyebrow {
+  font-family: var(--font-body);
+  font-weight: var(--fw-med);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5ch;
+}
+.eyebrow::before { content: "[ "; color: var(--ink-muted); }
+.eyebrow::after  { content: " ]"; color: var(--ink-muted); }
+
+/* Optional rule divider to accompany eyebrow */
+.eyebrow-rule {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+.eyebrow-rule::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--divider);
+}
+
+/* -------- Body prose -------- */
+p {
+  margin: 0 0 var(--s-4);
+  max-width: var(--prose-max);
+  line-height: var(--lh-normal);
+}
+
+small, .caption {
+  font-size: var(--fs-sm);
+  color: var(--fg-muted);
+  line-height: var(--lh-normal);
+}
+
+.stat {
+  font-family: var(--font-display);
+  font-weight: var(--fw-black);
+  font-size: clamp(var(--fs-5xl), 12vw, var(--fs-6xl));
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  color: var(--fg);
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+/* -------- Accent / editorial italic quote -------- */
+.quote, blockquote {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: var(--fs-xl);
+  line-height: 1.35;
+  color: var(--fg);
+  max-width: var(--prose-max);
+  border-left: 2px solid var(--ink-primary);
+  padding-left: var(--s-5);
+  margin: var(--s-6) 0;
+}
+
+/* -------- Links -------- */
+a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover { color: var(--accent-hover); }
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+  border-radius: var(--radius-sm);
+}
+
+/* -------- Selection -------- */
+::selection { background: var(--purple-anchor); color: var(--cream-base); }
+
+/* -------- Hairline divider utility -------- */
+hr, .rule {
+  border: 0;
+  border-top: 1px solid var(--divider);
+  margin: var(--s-6) 0;
+}
+
+/* -------- Focus visible default (accessibility) -------- */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
