@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -21,130 +21,127 @@ import { GlassCard } from '@components/GlassCard';
 import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
 import { EditorialHeader } from '@components/ui/EditorialHeader';
 import { SectionLabel, HRule } from '@components/Primitives';
-import {
-  PhoneIcon,
-  HouseIcon,
-  ShieldIcon,
-  PeopleIcon,
-  FindHelpIcon,
-  AlertIcon,
-} from '@components/Icons';
+import { AlertIcon, PhoneIcon } from '@components/Icons';
 import { Colors } from '@theme/colors';
-import {
-  fetchResources,
-  getAllResources,
-  type Resource,
-  type ResourceType,
-} from '@utils/resourceSearch';
+import { fetchShelters, type ShelterMapProgram } from '@utils/resourceSearch';
+import { SERVICE_FILTERS } from '@utils/shelterTypes';
 
 const ENTRY_SPRING = { mass: 1, stiffness: 180, damping: 20 } as const;
 
-const TYPE_FILTERS: { id: ResourceType | 'all'; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'hotline', label: 'Hotlines' },
-  { id: 'shelter', label: 'Shelter' },
-  { id: 'housing', label: 'Housing' },
-  { id: 'legal', label: 'Legal' },
-  { id: 'counseling', label: 'Counseling' },
-];
+// National DV Hotline — always pinned, never data-driven
+const NATIONAL_HOTLINE = {
+  name: 'National Domestic Violence Hotline',
+  phone: '18007997233',
+  phoneDisplay: '1-800-799-7233',
+  note: 'Free, confidential, 24/7. Text START to 88788.',
+};
 
-function typeIcon(type: ResourceType) {
-  switch (type) {
-    case 'hotline': return PhoneIcon;
-    case 'shelter': return HouseIcon;
-    case 'housing': return HouseIcon;
-    case 'legal': return ShieldIcon;
-    case 'counseling': return PeopleIcon;
-    default: return FindHelpIcon;
-  }
+function toTitleCase(str: string): string {
+  return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
 }
 
-function ResourceCard({
-  resource,
-  index,
-}: {
-  resource: Resource;
-  index: number;
-}) {
+function ShelterCard({ program, index }: { program: ShelterMapProgram; index: number }) {
   const translateY = useSharedValue(30);
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    translateY.value = withDelay(index * 60, withSpring(0, ENTRY_SPRING));
-    opacity.value = withDelay(index * 60, withTiming(1, { duration: 240 }));
-  }, [resource.id]);
+    translateY.value = withDelay(index * 40, withSpring(0, ENTRY_SPRING));
+    opacity.value = withDelay(index * 40, withTiming(1, { duration: 220 }));
+  }, [program.id]);
 
-  const style = useAnimatedStyle(() => ({
+  const animStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
     opacity: opacity.value,
   }));
 
-  const Icon = typeIcon(resource.type);
+  const displayName = toTitleCase(program.name);
+  const callPhone = program.hotline ?? program.phone;
+  const callPhoneDisplay = program.hotline
+    ? `Hotline: ${program.hotline}`
+    : program.phone ?? null;
+
+  // Address display respects precision tiers
+  const addressLine = program.hasListedAddress && program.address
+    ? `${program.address}, ${program.city}, ${program.state}${program.zip ? ' ' + program.zip : ''}`
+    : `${program.city}, ${program.state}`;
+
+  const isBroad = program.isBroadAreaRecord;
 
   return (
-    <Animated.View style={style}>
-      <GlassCard style={styles.resourceCard}>
-        <View style={styles.resourceHeader}>
-          <View style={styles.iconWrap}>
-            <Icon size={18} color={Colors.purpleAnchor} />
+    <Animated.View style={animStyle}>
+      <GlassCard style={styles.card}>
+        {isBroad && (
+          <View style={styles.broadBadge}>
+            <Text style={styles.broadBadgeText}>STATEWIDE</Text>
           </View>
-          <View style={styles.resourceMeta}>
-            <Text style={styles.resourceName}>{resource.name}</Text>
-            {resource.national ? (
-              <Text style={styles.resourceBadge}>NATIONAL</Text>
-            ) : (
-              <Text style={styles.resourceLocation}>
-                {resource.city}, {resource.state}
-              </Text>
-            )}
+        )}
+
+        <Text style={styles.cardName}>{displayName}</Text>
+        <Text style={styles.cardLocation}>{addressLine}</Text>
+
+        {program.services.length > 0 && (
+          <View style={styles.serviceRow}>
+            {program.services.slice(0, 4).map(s => (
+              <View key={s} style={styles.serviceChip}>
+                <Text style={styles.serviceChipText}>
+                  {SERVICE_FILTERS.find(f => f.id === s)?.label ?? s}
+                </Text>
+              </View>
+            ))}
           </View>
-        </View>
-        <Text style={styles.resourceDesc}>{resource.description}</Text>
-        {resource.address && (
-          <Text style={styles.resourceAddress}>{resource.address}</Text>
         )}
-        {resource.languages.length > 0 && (
-          <Text style={styles.resourceLangs}>
-            Languages: {resource.languages.join(', ')}
-          </Text>
-        )}
-        <Pressable
-          onPress={() => Linking.openURL(`tel:${resource.phone}`)}
-          style={styles.callBtn}
-          accessibilityRole="button"
-          accessibilityLabel={`Call ${resource.name}`}
-        >
-          <Text style={styles.callBtnText}>{resource.phoneDisplay}</Text>
-        </Pressable>
+
+        <Text style={styles.callNote}>Call to verify availability and intake process before visiting.</Text>
+
+        {callPhone ? (
+          <Pressable
+            onPress={() => Linking.openURL(`tel:${callPhone.replace(/\D/g, '')}`)}
+            style={styles.callBtn}
+            accessibilityRole="button"
+            accessibilityLabel={`Call ${displayName}`}
+          >
+            <PhoneIcon size={14} color="#fff" />
+            <Text style={styles.callBtnText}>{callPhoneDisplay}</Text>
+          </Pressable>
+        ) : program.website ? (
+          <Pressable
+            onPress={() => Linking.openURL(program.website!)}
+            style={styles.webBtn}
+            accessibilityRole="link"
+          >
+            <Text style={styles.webBtnText}>Visit website</Text>
+          </Pressable>
+        ) : null}
       </GlassCard>
     </Animated.View>
   );
 }
 
 export default function ResourcesScreen() {
-  const [resources, setResources] = useState<Resource[]>([]);
   const [query, setQuery] = useState('');
-  const [activeFilter, setActiveFilter] = useState<ResourceType | 'all'>('all');
-  const [activeState, setActiveState] = useState<string>('all');
+  const [activeServices, setActiveServices] = useState<string[]>([]);
+  const [records, setRecords] = useState<ShelterMapProgram[]>([]);
+  const [statusLabel, setStatusLabel] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Derive unique state codes from non-national resources, sorted alphabetically
-  const stateFilters = useMemo(() => {
-    const all = getAllResources();
-    const states = Array.from(
-      new Set(all.filter(r => !r.national).map(r => r.state))
-    ).sort();
-    if (states.length <= 1) return [];
-    return [{ id: 'all', label: 'All states' }, ...states.map(s => ({ id: s, label: s }))];
+  const runSearch = useCallback((q: string, svcs: string[]) => {
+    setLoading(true);
+    fetchShelters({ query: q, services: svcs }).then(res => {
+      setRecords(res.records);
+      setStatusLabel(res.statusLabel);
+      setLoading(false);
+    });
   }, []);
 
   useEffect(() => {
-    setLoading(true);
-    fetchResources({ type: activeFilter, state: activeState, query }).then(results => {
-      setResources(results);
-      setLoading(false);
-    });
-  }, [query, activeFilter, activeState]);
+    runSearch(query, activeServices);
+  }, [query, activeServices]);
+
+  const toggleService = (id: string) => {
+    setActiveServices(prev =>
+      prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+    );
+  };
 
   return (
     <View style={styles.root}>
@@ -157,8 +154,8 @@ export default function ResourcesScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <EditorialHeader
-            title={`Programs\nand services.`}
-            subtitle="Free, confidential help. No account required."
+            title={`Find\nhelp near\nyou.`}
+            subtitle="3,681 programs across all 50 states."
           />
 
           {/* Immediate danger banner */}
@@ -175,110 +172,82 @@ export default function ResourcesScreen() {
             </Text>
           </View>
 
-          {/* Search */}
-          <View style={styles.searchRow}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search by name, city, or state..."
-              placeholderTextColor={Colors.inkMuted}
-              value={query}
-              onChangeText={setQuery}
-              clearButtonMode="while-editing"
-            />
-          </View>
+          {/* National DV Hotline — always pinned */}
+          <GlassCard style={styles.hotlineCard}>
+            <Text style={styles.hotlineLabel}>NATIONAL HOTLINE · 24/7 · FREE</Text>
+            <Pressable
+              onPress={() => Linking.openURL(`tel:${NATIONAL_HOTLINE.phone}`)}
+              accessibilityRole="button"
+              accessibilityLabel="Call National Domestic Violence Hotline"
+            >
+              <Text style={styles.hotlineNumber}>{NATIONAL_HOTLINE.phoneDisplay}</Text>
+            </Pressable>
+            <Text style={styles.hotlineNote}>{NATIONAL_HOTLINE.note}</Text>
+          </GlassCard>
 
-          {/* Type filters */}
+          <HRule style={styles.hRule} />
+
+          {/* Search */}
+          <TextInput
+            style={styles.searchInput}
+            placeholder="ZIP code, city, or state..."
+            placeholderTextColor={Colors.inkMuted}
+            value={query}
+            onChangeText={setQuery}
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+            autoCapitalize="none"
+          />
+
+          {/* Service filters */}
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterRow}
+            style={styles.filterScroll}
           >
-            {TYPE_FILTERS.map(f => (
-              <Pressable
-                key={f.id}
-                onPress={() => setActiveFilter(f.id)}
-                style={[
-                  styles.filterChip,
-                  activeFilter === f.id && styles.filterChipActive,
-                ]}
-                accessibilityRole="button"
-              >
-                <Text
-                  style={[
-                    styles.filterChipText,
-                    activeFilter === f.id && styles.filterChipTextActive,
-                  ]}
-                >
-                  {f.label}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-
-          {/* State filters — only shown when there are resources from multiple states */}
-          {stateFilters.length > 0 && (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterRow}
-              style={styles.stateFilterRow}
-            >
-              {stateFilters.map(f => (
+            {SERVICE_FILTERS.map(f => {
+              const active = activeServices.includes(f.id);
+              return (
                 <Pressable
                   key={f.id}
-                  onPress={() => setActiveState(f.id)}
-                  style={[
-                    styles.filterChip,
-                    activeState === f.id && styles.filterChipActive,
-                  ]}
+                  onPress={() => toggleService(f.id)}
+                  style={[styles.filterChip, active && styles.filterChipActive]}
                   accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
                 >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      activeState === f.id && styles.filterChipTextActive,
-                    ]}
-                  >
+                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
                     {f.label}
                   </Text>
                 </Pressable>
-              ))}
-            </ScrollView>
-          )}
+              );
+            })}
+          </ScrollView>
 
           <HRule style={styles.hRule} />
 
           {loading ? (
-            <Text style={styles.loadingText}>Loading...</Text>
-          ) : resources.length === 0 ? (
-            <Text style={styles.emptyText}>
-              No results. Try a different search or filter.
-            </Text>
+            <Text style={styles.statusText}>Searching...</Text>
           ) : (
             <>
-              <SectionLabel
-                text={`${resources.length} ${resources.length === 1 ? 'RESOURCE' : 'RESOURCES'}`}
-              />
-              {resources.map((r, i) => (
-                <ResourceCard key={r.id} resource={r} index={i} />
-              ))}
+              <SectionLabel text={statusLabel.toUpperCase()} />
+              {records.length === 0 ? (
+                <Text style={styles.emptyText}>
+                  Try searching by ZIP code (e.g. 90731), city and state (e.g. Los Angeles, CA), or state name.
+                </Text>
+              ) : (
+                records.map((r, i) => (
+                  <ShelterCard key={r.id} program={r} index={i} />
+                ))
+              )}
             </>
           )}
 
           <HRule style={styles.hRule} />
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              Know of a resource that should be listed here? Contact Rainbow Services at{' '}
-              <Text
-                style={styles.footerLink}
-                onPress={() => Linking.openURL('tel:3105479343')}
-              >
-                310-547-9343
-              </Text>
-              .
-            </Text>
-          </View>
+          <Text style={styles.dataNote}>
+            Listed addresses are public records from FVPSA federal grants and state coalition directories. Confidential shelter locations are never shown. Call to verify availability and intake process before visiting.
+          </Text>
         </ScrollView>
       </SafeAreaView>
       <FloatingCommandPill />
@@ -314,13 +283,37 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 19,
   },
-  dangerLink: {
-    fontWeight: '700',
-    color: Colors.safetyRed,
+  dangerLink: { fontWeight: '700', color: Colors.safetyRed },
+  hotlineCard: {
+    padding: 16,
+    marginBottom: 0,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.purpleAnchor,
   },
-  searchRow: {
-    marginBottom: 12,
+  hotlineLabel: {
+    fontFamily: 'Inter',
+    fontWeight: '600',
+    fontSize: 9,
+    letterSpacing: 1.3,
+    color: Colors.inkMuted,
+    marginBottom: 6,
   },
+  hotlineNumber: {
+    fontFamily: 'Inter',
+    fontWeight: '800',
+    fontSize: 26,
+    color: Colors.purpleAnchor,
+    letterSpacing: -1,
+    marginBottom: 4,
+    textDecorationLine: 'underline',
+  },
+  hotlineNote: {
+    fontFamily: 'Inter',
+    fontSize: 12,
+    color: Colors.inkMuted,
+    lineHeight: 18,
+  },
+  hRule: { marginVertical: 20 },
   searchInput: {
     backgroundColor: Colors.creamCard,
     borderWidth: 1,
@@ -332,14 +325,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.inkPrimary,
     height: 44,
+    marginBottom: 12,
   },
-  filterRow: {
-    gap: 8,
-    paddingBottom: 4,
-  },
-  stateFilterRow: {
-    marginTop: 8,
-  },
+  filterScroll: { marginBottom: 0 },
+  filterRow: { gap: 8, paddingBottom: 4 },
   filterChip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
@@ -358,11 +347,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.inkMuted,
   },
-  filterChipTextActive: {
-    color: '#fff',
-  },
-  hRule: { marginVertical: 20 },
-  loadingText: {
+  filterChipTextActive: { color: '#fff' },
+  statusText: {
     fontFamily: 'Inter',
     fontSize: 13,
     color: Colors.inkMuted,
@@ -371,94 +357,104 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 13,
     color: Colors.inkMuted,
-    lineHeight: 20,
+    lineHeight: 21,
   },
-  resourceCard: {
+  card: {
     padding: 14,
     marginBottom: 12,
   },
-  resourceHeader: {
-    flexDirection: 'row',
-    gap: 10,
+  broadBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(74,20,140,0.08)',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
     marginBottom: 8,
   },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    backgroundColor: 'rgba(74,20,140,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  resourceMeta: {
-    flex: 1,
-    gap: 3,
-  },
-  resourceName: {
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    fontSize: 14,
-    color: Colors.inkPrimary,
-    lineHeight: 19,
-  },
-  resourceBadge: {
+  broadBadgeText: {
     fontFamily: 'Inter',
     fontWeight: '600',
     fontSize: 9,
     letterSpacing: 0.8,
     color: Colors.purpleAnchor,
-    textTransform: 'uppercase',
   },
-  resourceLocation: {
+  cardName: {
     fontFamily: 'Inter',
-    fontSize: 11,
-    color: Colors.inkMuted,
-  },
-  resourceDesc: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    color: Colors.inkMuted,
+    fontWeight: '600',
+    fontSize: 14,
+    color: Colors.inkPrimary,
     lineHeight: 19,
-    marginBottom: 8,
+    marginBottom: 3,
   },
-  resourceAddress: {
+  cardLocation: {
     fontFamily: 'Inter',
     fontSize: 12,
     color: Colors.inkMuted,
-    marginBottom: 4,
-    fontStyle: 'italic',
+    marginBottom: 8,
   },
-  resourceLangs: {
+  serviceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+  serviceChip: {
+    backgroundColor: 'rgba(74,20,140,0.06)',
+    borderRadius: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  serviceChipText: {
+    fontFamily: 'Inter',
+    fontSize: 10,
+    fontWeight: '500',
+    color: Colors.purpleAnchor,
+    letterSpacing: 0.2,
+  },
+  callNote: {
     fontFamily: 'Inter',
     fontSize: 11,
     color: Colors.inkMuted,
+    lineHeight: 16,
     marginBottom: 10,
+    fontStyle: 'italic',
   },
   callBtn: {
     backgroundColor: Colors.purpleAnchor,
     borderRadius: 6,
     height: 40,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
   },
   callBtnText: {
     color: '#fff',
     fontFamily: 'Inter',
     fontWeight: '600',
-    fontSize: 14,
+    fontSize: 13,
   },
-  footer: {
-    marginBottom: 8,
+  webBtn: {
+    borderWidth: 1,
+    borderColor: Colors.purpleAnchor,
+    borderRadius: 6,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  footerText: {
+  webBtnText: {
     fontFamily: 'Inter',
-    fontSize: 12,
+    fontWeight: '500',
+    fontSize: 13,
+    color: Colors.purpleAnchor,
+  },
+  dataNote: {
+    fontFamily: 'Inter',
+    fontSize: 11,
     color: Colors.inkMuted,
     lineHeight: 18,
-  },
-  footerLink: {
-    color: Colors.purpleAnchor,
-    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 8,
+    marginBottom: 8,
   },
 });

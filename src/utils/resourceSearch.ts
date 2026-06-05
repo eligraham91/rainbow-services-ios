@@ -1,71 +1,84 @@
-import resourcesData from '@data/resources.json';
+import shelterData from '@data/shelter-data.json';
+import {
+  classifySearchIntent,
+  geoSearchByZip,
+  geoSearchByCityState,
+  geoSearchByState,
+  geoSearchByText,
+  type GeoSearchResult,
+  type GeoResultTier,
+} from '@utils/geoSearch';
+import type { ShelterMapProgram } from '@utils/shelterTypes';
 
-export type ResourceType = 'hotline' | 'shelter' | 'legal' | 'counseling' | 'housing';
+export type { ShelterMapProgram, GeoSearchResult, GeoResultTier };
+export { classifySearchIntent };
 
-export interface Resource {
-  id: string;
-  name: string;
-  phone: string;
-  phoneDisplay: string;
-  website?: string;
-  address: string | null;
-  city: string;
-  state: string;
-  zip: string | null;
-  type: ResourceType;
-  national: boolean;
-  languages: string[];
-  description: string;
-}
+const ALL_SHELTERS: ShelterMapProgram[] = shelterData as ShelterMapProgram[];
 
-const ALL_RESOURCES: Resource[] = resourcesData as Resource[];
-
-export interface ResourceFilters {
-  type?: ResourceType | 'all';
-  state?: string;
+export interface ShelterSearchFilters {
   query?: string;
+  services?: string[];
 }
 
-// API-swappable interface: swap this implementation for a network call later
-// without changing any screen code.
-export async function fetchResources(filters: ResourceFilters = {}): Promise<Resource[]> {
-  let results = [...ALL_RESOURCES];
-
-  if (filters.type && filters.type !== 'all') {
-    results = results.filter(r => r.type === filters.type);
-  }
-
-  if (filters.state && filters.state !== 'all') {
-    results = results.filter(
-      r => r.national || r.state.toLowerCase() === filters.state!.toLowerCase()
-    );
-  }
-
-  if (filters.query && filters.query.trim().length > 0) {
-    const q = filters.query.trim().toLowerCase();
-    results = results.filter(
-      r =>
-        r.name.toLowerCase().includes(q) ||
-        r.description.toLowerCase().includes(q) ||
-        r.city.toLowerCase().includes(q) ||
-        r.state.toLowerCase().includes(q)
-    );
-  }
-
-  // National resources always appear first
-  results.sort((a, b) => {
-    if (a.national && !b.national) return -1;
-    if (!a.national && b.national) return 1;
-    return 0;
-  });
-
-  return results;
+export interface ShelterSearchResponse {
+  records: ShelterMapProgram[];
+  geoResult: GeoSearchResult | null;
+  intent: ReturnType<typeof classifySearchIntent>;
+  statusLabel: string;
 }
 
-export function getResourcesByType(type: ResourceType): Resource[] {
-  return ALL_RESOURCES.filter(r => r.type === type);
+function buildStatusLabel(r: Omit<ShelterSearchResponse, 'statusLabel'>): string {
+  const count = r.records.length;
+  if (count === 0) return 'No results. Try a different search.';
+  const n = `${count} ${count === 1 ? 'program' : 'programs'}`;
+  if (!r.geoResult || r.intent === 'empty') return `${n} available`;
+
+  switch (r.geoResult.tier) {
+    case 'exact-zip':    return `${n} in or near ${r.geoResult.searchedZip}`;
+    case 'nearby-25':   return `${n} within 25 miles of ${r.geoResult.searchedZip}`;
+    case 'nearby-50':   return `${n} within 50 miles of ${r.geoResult.searchedZip}`;
+    case 'nearby-100':  return `${n} within 100 miles of ${r.geoResult.searchedZip}`;
+    case 'state-fallback': return `Showing statewide programs near ${r.geoResult.searchedZip}`;
+    default: return `${n} found`;
+  }
 }
 
-export function getAllResources(): Resource[] {
-  return [...ALL_RESOURCES];
+// Default empty-query view: first 50 records (geo search handles real queries)
+export async function fetchShelters(filters: ShelterSearchFilters = {}): Promise<ShelterSearchResponse> {
+  const query = filters.query?.trim() ?? '';
+  const services = filters.services ?? [];
+  const intent = classifySearchIntent(query);
+  let records: ShelterMapProgram[] = [];
+  let geoResult: GeoSearchResult | null = null;
+
+  switch (intent) {
+    case 'empty':
+      records = services.length > 0
+        ? ALL_SHELTERS.filter(s => services.every(f => s.services.includes(f))).slice(0, 50)
+        : ALL_SHELTERS.slice(0, 50);
+      break;
+    case 'zip': {
+      geoResult = geoSearchByZip(query, ALL_SHELTERS, services);
+      records = geoResult.records;
+      break;
+    }
+    case 'city-state': {
+      const r = geoSearchByCityState(query, ALL_SHELTERS, services);
+      records = r.records;
+      geoResult = { records, tier: 'none' };
+      break;
+    }
+    case 'state': {
+      const r = geoSearchByState(query, ALL_SHELTERS, services);
+      records = r.records;
+      geoResult = { records, tier: 'none', searchedState: r.stateAbbr };
+      break;
+    }
+    case 'text':
+      records = geoSearchByText(query, ALL_SHELTERS, services);
+      break;
+  }
+
+  const partial = { records, geoResult, intent };
+  return { ...partial, statusLabel: buildStatusLabel(partial) };
 }
