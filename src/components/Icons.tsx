@@ -156,3 +156,44 @@ export function ChevronRightIcon({ size = 12, color = '#C4B99E' }: IconProps) {
     </Svg>
   );
 }
+
+export function TrashIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 7H21" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+      <Path d="M8 7V5C8 4.4 8.4 4 9 4H15C15.6 4 16 4.4 16 5V7" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+      <Path d="M19 7L18 20H6L5 7" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M10 11V16M14 11V16" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function LockIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="4" y="11" width="16" height="11" rx="2" stroke={color} strokeWidth="1.75" />
+      <Path d="M8 11V7C8 4.8 9.8 3 12 3C14.2 3 16 4.8 16 7V11" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+      <Circle cx="12" cy="16" r="1.5" fill={color} />
+    </Svg>
+  );
+}
+
+export function AlertIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3L22 21H2L12 3Z" stroke={color} strokeWidth="1.75" strokeLinejoin="round" />
+      <Path d="M12 10V14" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+      <Circle cx="12" cy="17.5" r="1" fill={color} />
+    </Svg>
+  );
+}
+
+export function DocumentIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M14 3H7C5.9 3 5 3.9 5 5V19C5 20.1 5.9 21 7 21H17C18.1 21 19 20.1 19 19V8L14 3Z" stroke={color} strokeWidth="1.75" strokeLinejoin="round" />
+      <Path d="M14 3V8H19" stroke={color} strokeWidth="1.75" strokeLinejoin="round" />
+      <Path d="M9 13H15M9 17H12" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+    </Svg>
+  );
+}

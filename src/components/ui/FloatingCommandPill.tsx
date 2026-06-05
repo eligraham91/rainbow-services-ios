@@ -16,6 +16,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { CompassIcon, ToolsIcon, FindHelpIcon } from '@components/Icons';
+import { Colors } from '@theme/colors';
 
 const PRESS_SPRING = { mass: 1, stiffness: 220, damping: 16 } as const;
 const RELEASE_SPRING = { mass: 1, stiffness: 300, damping: 24 } as const;
@@ -67,6 +68,37 @@ function PillButton({
   );
 }
 
+function PanicExitButton({ onPress }: { onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.88, PRESS_SPRING);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, RELEASE_SPRING);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    runOnJS(onPress)();
+  };
+
+  return (
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      accessibilityRole="button"
+      accessibilityLabel="Quick exit — leaves this app immediately"
+      style={styles.exitBtn}
+    >
+      <Animated.View style={[styles.exitBtnInner, animatedStyle]}>
+        <Text style={styles.exitBtnText}>✕</Text>
+      </Animated.View>
+    </Pressable>
+  );
+}
+
 export function FloatingCommandPill() {
   const router = useRouter();
 
@@ -87,7 +119,7 @@ export function FloatingCommandPill() {
       id: 'findhelp',
       label: 'Find Help',
       Icon: FindHelpIcon,
-      action: () => router.replace('/stealth'),
+      action: () => router.push('/resources'),
     },
   ];
 
@@ -101,6 +133,7 @@ export function FloatingCommandPill() {
           onPress={tab.action}
         />
       ))}
+      <PanicExitButton onPress={() => router.replace('/stealth')} />
     </View>
   );
 
@@ -169,5 +202,26 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     letterSpacing: 0.3,
+  },
+  exitBtn: {
+    width: 40,
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+  },
+  exitBtnInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.safetyRed,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  exitBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 16,
   },
 });
