@@ -1,12 +1,17 @@
-// Phase 3 palette — deep editorial plum + warm stone
+// Canonical brand tokens (mirrors src/styles/colors_and_type.css)
 export const Colors = {
-  purpleAnchor:  '#2D1E3D',
-  creamBase:     '#F7F5F0',
-  textDark:      '#1A1124',
-  textLight:     '#FFFFFF',
+  purpleAnchor:  '#4A148C',   // --purple-anchor
+  purpleHover:   '#6A1B9A',   // --purple-hover
+  creamBase:     '#F5F1E8',   // --cream-base
+  creamCard:     '#EDE4CE',   // --cream-card
+  inkPrimary:    '#1A1A1A',   // --ink-primary
+  inkMuted:      '#4A4A4A',   // --ink-muted
+  safetyRed:     '#C62828',   // --safety-red (DV safety messaging only)
+  ruleLine:      '#C4B99E',   // --rule-line
+  // Glass overlay helpers
   borderGlass:   'rgba(255, 255, 255, 0.15)',
   borderDark:    'rgba(26, 17, 36, 0.1)',
-  bgGlassDark:   'rgba(45, 30, 61, 0.05)',
+  bgGlassDark:   'rgba(74, 20, 140, 0.05)',
 } as const;
 
 export type AppColors = typeof Colors;
