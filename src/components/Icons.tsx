@@ -197,3 +197,26 @@ export function DocumentIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
     </Svg>
   );
 }
+
+export function BookmarkIcon({ size = 24, color = '#1A1A1A', filled = false }: IconProps & { filled?: boolean }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M5 3H19C19.6 3 20 3.4 20 4V21L12 17L4 21V4C4 3.4 4.4 3 5 3Z"
+        stroke={color}
+        strokeWidth="1.75"
+        strokeLinejoin="round"
+        fill={filled ? color : 'none'}
+      />
+    </Svg>
+  );
+}
+
+export function CopyIcon({ size = 24, color = '#1A1A1A' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="9" y="9" width="12" height="12" rx="2" stroke={color} strokeWidth="1.75" />
+      <Path d="M15 9V6C15 4.9 14.1 4 13 4H6C4.9 4 4 4.9 4 6V13C4 14.1 4.9 15 6 15H9" stroke={color} strokeWidth="1.75" strokeLinecap="round" />
+    </Svg>
+  );
+}

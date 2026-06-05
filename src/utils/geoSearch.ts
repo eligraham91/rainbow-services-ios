@@ -243,7 +243,7 @@ export function geoSearchByZip(zip: string, pool: ShelterMapProgram[], activeFil
             const pb = prec[b.s.locationPrecision] ?? 2;
             return pa !== pb ? pa - pb : a.dist - b.dist;
           })
-          .map(x => x.s);
+          .map(x => ({ ...x.s, _distMiles: Math.round(x.dist * 10) / 10 }));
         return { records: [...sorted, ...sameStateBroad], tier, radiusMiles: radius, searchedZip: normalizedZip, centroidApproximate: approximate };
       }
       break;

@@ -35,6 +35,8 @@ export interface ShelterMapProgram {
   geocodeMethod?: string;
   category?: string;
   services: string[];
+  /** Distance from search origin in miles — only set for ZIP geo searches, never persisted */
+  _distMiles?: number;
 }
 
 export const SERVICE_FILTERS: { id: string; label: string }[] = [
