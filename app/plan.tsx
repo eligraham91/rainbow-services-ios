@@ -6,6 +6,7 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -15,6 +16,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import { MeshGradientBg } from '@components/MeshGradientBg';
 import { GlassCard } from '@components/GlassCard';
 import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
@@ -30,6 +33,47 @@ import {
 } from '@utils/vault';
 
 const ENTRY_SPRING = { mass: 1, stiffness: 200, damping: 22 } as const;
+
+function buildSafetyPlanHtml(plan: SafetyPlanData): string {
+  const sections = [
+    { label: 'Safe escape routes', value: plan.escapeRoutes },
+    { label: 'Documents to grab', value: plan.documents },
+    { label: 'Emergency contacts', value: plan.emergencyContacts },
+    { label: 'Code word', value: plan.codeWord },
+    { label: 'Safe places to go', value: plan.safePlaces },
+    { label: 'Finances', value: plan.finances },
+  ];
+  const rows = sections
+    .map(
+      s => `<div class="section">
+        <div class="label">${s.label}</div>
+        <div class="value">${s.value.trim() || '<em>Not filled in</em>'}</div>
+      </div>`
+    )
+    .join('');
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  body { font-family: -apple-system, Helvetica, sans-serif; margin: 48px; color: #1A1A1A; max-width: 600px; }
+  h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .sub { font-size: 13px; color: #4A4A4A; margin-bottom: 36px; }
+  .section { margin-bottom: 28px; border-bottom: 1px solid #EDEDED; padding-bottom: 20px; }
+  .section:last-child { border-bottom: none; }
+  .label { font-size: 10px; font-weight: 600; letter-spacing: 1.3px; text-transform: uppercase; color: #4A4A4A; margin-bottom: 8px; }
+  .value { font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
+  .footer { margin-top: 48px; font-size: 11px; color: #9A9A9A; border-top: 1px solid #EDEDED; padding-top: 14px; }
+</style>
+</head>
+<body>
+<h1>Safety Plan</h1>
+<div class="sub">For personal use only.</div>
+${rows}
+<div class="footer">Store this document somewhere safe and accessible only to you.</div>
+</body>
+</html>`;
+}
 
 interface PlanStep {
   section: SafetyPlanSection;
@@ -183,6 +227,24 @@ function CompleteView({
   onViewVault: () => void;
 }) {
   const filledCount = STEPS.filter(s => plan[s.section].trim().length > 0).length;
+  const [exporting, setExporting] = useState(false);
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const html = buildSafetyPlanHtml(plan);
+      const { uri } = await Print.printToFileAsync({ html });
+      await Sharing.shareAsync(uri, {
+        mimeType: 'application/pdf',
+        UTI: 'com.adobe.pdf',
+        dialogTitle: 'Save or send your safety plan',
+      });
+    } catch {
+      Alert.alert('Could not export', 'Unable to create the PDF. Try again.');
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <View style={styles.introContainer}>
@@ -210,6 +272,18 @@ function CompleteView({
       </GlassCard>
       <Pressable onPress={onViewVault} style={styles.beginBtn} accessibilityRole="button">
         <Text style={styles.beginBtnText}>View in Vault</Text>
+      </Pressable>
+      <Pressable
+        onPress={handleExport}
+        style={styles.exportBtn}
+        disabled={exporting}
+        accessibilityRole="button"
+        accessibilityLabel="Export safety plan as PDF"
+      >
+        <DocumentIcon size={15} color={exporting ? Colors.inkMuted : Colors.purpleAnchor} />
+        <Text style={[styles.exportBtnText, exporting && styles.exportBtnTextDisabled]}>
+          {exporting ? 'Preparing PDF...' : 'Export as PDF'}
+        </Text>
       </Pressable>
     </View>
   );
@@ -473,4 +547,24 @@ const styles = StyleSheet.create({
     color: Colors.inkPrimary,
   },
   summaryLabelEmpty: { color: Colors.inkMuted },
+  exportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 12,
+    height: 44,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.purpleAnchor,
+  },
+  exportBtnText: {
+    fontFamily: 'Inter',
+    fontWeight: '600',
+    fontSize: 14,
+    color: Colors.purpleAnchor,
+  },
+  exportBtnTextDisabled: {
+    color: Colors.inkMuted,
+  },
 });

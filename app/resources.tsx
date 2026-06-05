@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import {
 import { Colors } from '@theme/colors';
 import {
   fetchResources,
+  getAllResources,
   type Resource,
   type ResourceType,
 } from '@utils/resourceSearch';
@@ -124,15 +125,26 @@ export default function ResourcesScreen() {
   const [resources, setResources] = useState<Resource[]>([]);
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<ResourceType | 'all'>('all');
+  const [activeState, setActiveState] = useState<string>('all');
   const [loading, setLoading] = useState(true);
+
+  // Derive unique state codes from non-national resources, sorted alphabetically
+  const stateFilters = useMemo(() => {
+    const all = getAllResources();
+    const states = Array.from(
+      new Set(all.filter(r => !r.national).map(r => r.state))
+    ).sort();
+    if (states.length <= 1) return [];
+    return [{ id: 'all', label: 'All states' }, ...states.map(s => ({ id: s, label: s }))];
+  }, []);
 
   useEffect(() => {
     setLoading(true);
-    fetchResources({ type: activeFilter, query }).then(results => {
+    fetchResources({ type: activeFilter, state: activeState, query }).then(results => {
       setResources(results);
       setLoading(false);
     });
-  }, [query, activeFilter]);
+  }, [query, activeFilter, activeState]);
 
   return (
     <View style={styles.root}>
@@ -202,6 +214,37 @@ export default function ResourcesScreen() {
               </Pressable>
             ))}
           </ScrollView>
+
+          {/* State filters — only shown when there are resources from multiple states */}
+          {stateFilters.length > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterRow}
+              style={styles.stateFilterRow}
+            >
+              {stateFilters.map(f => (
+                <Pressable
+                  key={f.id}
+                  onPress={() => setActiveState(f.id)}
+                  style={[
+                    styles.filterChip,
+                    activeState === f.id && styles.filterChipActive,
+                  ]}
+                  accessibilityRole="button"
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      activeState === f.id && styles.filterChipTextActive,
+                    ]}
+                  >
+                    {f.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          )}
 
           <HRule style={styles.hRule} />
 
@@ -293,6 +336,9 @@ const styles = StyleSheet.create({
   filterRow: {
     gap: 8,
     paddingBottom: 4,
+  },
+  stateFilterRow: {
+    marginTop: 8,
   },
   filterChip: {
     paddingHorizontal: 14,

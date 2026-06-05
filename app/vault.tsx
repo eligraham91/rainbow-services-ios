@@ -23,7 +23,8 @@ import { MeshGradientBg } from '@components/MeshGradientBg';
 import { GlassCard } from '@components/GlassCard';
 import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
 import { SectionLabel, HRule } from '@components/Primitives';
-import { LockIcon, TrashIcon } from '@components/Icons';
+import { LockIcon } from '@components/Icons';
+import { VaultEntry } from '@components/VaultEntry';
 import { Colors } from '@theme/colors';
 import {
   initVault,
@@ -98,55 +99,6 @@ function PlanSummary({ plan, onEdit }: { plan: SafetyPlanData; onEdit: () => voi
         </Text>
       </Pressable>
     </>
-  );
-}
-
-function NoteEntry({
-  item,
-  index,
-  onDelete,
-}: {
-  item: VaultItem;
-  index: number;
-  onDelete: (id: string) => void;
-}) {
-  const date = new Date(item.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-
-  return (
-    <AnimatedItem index={index}>
-      <GlassCard style={styles.noteCard}>
-        <View style={styles.noteHeader}>
-          <View style={styles.noteHeaderLeft}>
-            <Text style={styles.noteTitle}>{item.title}</Text>
-            <Text style={styles.noteDate}>{date}</Text>
-          </View>
-          <Pressable
-            onPress={() =>
-              Alert.alert('Remove this note?', item.title, [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                  text: 'Remove',
-                  style: 'destructive',
-                  onPress: () => onDelete(item.id),
-                },
-              ])
-            }
-            accessibilityLabel="Delete note"
-            style={styles.deleteBtn}
-          >
-            <TrashIcon size={16} color={Colors.inkMuted} />
-          </Pressable>
-        </View>
-        {item.body.trim().length > 0 && (
-          <Text style={styles.noteBody} numberOfLines={3}>
-            {item.body}
-          </Text>
-        )}
-      </GlassCard>
-    </AnimatedItem>
   );
 }
 
@@ -363,7 +315,7 @@ export default function VaultScreen() {
           )}
 
           {notes.map((note, i) => (
-            <NoteEntry
+            <VaultEntry
               key={note.id}
               item={note}
               index={i + 2}
@@ -478,13 +430,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   editPlanBtnText: { fontFamily: 'Inter', fontWeight: '500', fontSize: 13, color: Colors.inkPrimary },
-  noteCard: { padding: 14, marginBottom: 10 },
-  noteHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
-  noteHeaderLeft: { flex: 1, gap: 2 },
-  noteTitle: { fontFamily: 'Inter', fontWeight: '600', fontSize: 14, color: Colors.inkPrimary },
-  noteDate: { fontFamily: 'Inter', fontSize: 10, color: Colors.inkMuted, letterSpacing: 0.4, textTransform: 'uppercase' },
-  noteBody: { fontFamily: 'Inter', fontSize: 13, color: Colors.inkMuted, lineHeight: 19 },
-  deleteBtn: { padding: 4, marginLeft: 8 },
   emptyText: { fontFamily: 'Inter', fontSize: 13, color: Colors.inkMuted, marginBottom: 12 },
   addNoteBtn: {
     borderWidth: 1,
