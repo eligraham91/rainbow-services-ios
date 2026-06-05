@@ -14,6 +14,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { C } from '@theme/colors';
 
@@ -26,6 +27,8 @@ interface SpringButtonProps {
   accessibilityLabel?: string;
   hitSlop?: Insets;
   style?: StyleProp<ViewStyle>;
+  /** When provided, navigates to this route 150ms after press-in (after spring compression). */
+  href?: string;
 }
 
 const DEFAULT_HIT_SLOP: Insets = { top: 8, bottom: 8, left: 8, right: 8 };
@@ -51,9 +54,11 @@ export function SpringButton({
   accessibilityLabel,
   hitSlop = DEFAULT_HIT_SLOP,
   style,
+  href,
 }: SpringButtonProps) {
   const reducedMotion = useTraumaInformedMotion();
   const scale = useSharedValue(1);
+  const router = useRouter();
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -69,11 +74,16 @@ export function SpringButton({
           ? Haptics.ImpactFeedbackStyle.Heavy
           : Haptics.ImpactFeedbackStyle.Medium;
       Haptics.impactAsync(feedbackStyle);
+      if (href) {
+        // Navigate after 150ms so the spring compression is felt before transition
+        setTimeout(() => router.push(href as Parameters<typeof router.push>[0]), 150);
+      }
     }
   };
 
   const handlePressOut = () => {
     scale.value = withSpring(1, RELEASE_SPRING);
+    if (!href) onPress();
   };
 
   const isPrimary = variant === 'primary';
