@@ -36,9 +36,7 @@
   "submit": {
     "production": {
       "ios": {
-        "appleId": "eli.graham@rainbowservicesdv.org",
-        "ascAppId": "",
-        "appleTeamId": ""
+        "appleId": "eli.graham@rainbowservicesdv.org"
       }
     }
   }
