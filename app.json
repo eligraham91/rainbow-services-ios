@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Start Here",
-    "slug": "rainbow-services-start-here",
+    "slug": "rainbow-ios",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,14 +15,14 @@
     "updates": {
       "enabled": true,
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/rainbow-services-start-here"
+      "url": "https://u.expo.dev/bc49c954-3b0b-4ee4-b0b8-eb37eed61b4a"
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "org.rainbowservices.starthere",
+      "bundleIdentifier": "org.rainbowservicesdv.starthere",
       "buildNumber": "1",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Used to find nearby support resources.",
@@ -34,7 +34,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F5F1E8"
       },
-      "package": "org.rainbowservices.starthere"
+      "package": "org.rainbowservicesdv.starthere"
     },
     "web": {
       "bundler": "metro",
@@ -56,10 +56,10 @@
     "experiments": {
       "typedRoutes": true
     },
-    "owner": "rainbowservices",
+    "owner": "eligraham91",
     "extra": {
       "eas": {
-        "projectId": "rainbow-services-start-here"
+        "projectId": "bc49c954-3b0b-4ee4-b0b8-eb37eed61b4a"
       }
     }
   }
