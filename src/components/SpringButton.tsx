@@ -64,11 +64,11 @@ export function SpringButton({
       if (!reducedMotion) {
         scale.value = withSpring(0.94, PRESS_SPRING);
       }
-      const style =
+      const feedbackStyle =
         variant === 'primary'
           ? Haptics.ImpactFeedbackStyle.Heavy
           : Haptics.ImpactFeedbackStyle.Medium;
-      Haptics.impactAsync(style);
+      Haptics.impactAsync(feedbackStyle);
     }
   };
 
