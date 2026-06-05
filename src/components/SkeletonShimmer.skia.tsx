@@ -4,11 +4,10 @@ import {
   Canvas,
   LinearGradient,
   RoundedRect,
-  vec,
 } from '@shopify/react-native-skia';
 import {
   Easing,
-  useAnimatedReaction,
+  useDerivedValue,
   useSharedValue,
   withRepeat,
   withTiming,
@@ -36,17 +35,15 @@ export function SkiaShimmerImpl({
     );
   }, [reducedMotion]);
 
-  const shimmerStartX = useSharedValue(-width);
-  const shimmerEndX = useSharedValue(0);
-
-  useAnimatedReaction(
-    () => progress.value,
-    (p) => {
-      'worklet';
-      shimmerStartX.value = -width + p * width * 3;
-      shimmerEndX.value = shimmerStartX.value + width;
-    }
-  );
+  // Pass SharedValues directly so Skia reacts to changes on the UI thread
+  const shimmerStart = useDerivedValue(() => ({
+    x: -width + progress.value * width * 3,
+    y: 0,
+  }));
+  const shimmerEnd = useDerivedValue(() => ({
+    x: shimmerStart.value.x + width,
+    y: 0,
+  }));
 
   if (reducedMotion) {
     return (
@@ -61,8 +58,8 @@ export function SkiaShimmerImpl({
       <Canvas style={{ width, height }}>
         <RoundedRect x={0} y={0} width={width} height={height} r={borderRadius}>
           <LinearGradient
-            start={vec(shimmerStartX.value, 0)}
-            end={vec(shimmerEndX.value, 0)}
+            start={shimmerStart}
+            end={shimmerEnd}
             colors={[C.creamCard, C.creamCardSoft, 'rgba(255,255,255,0.75)', C.creamCardSoft, C.creamCard]}
           />
         </RoundedRect>

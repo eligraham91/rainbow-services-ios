@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, type ViewStyle, type StyleProp } from 'react-native';
-import { Canvas, Fill, RadialGradient, vec } from '@shopify/react-native-skia';
+import { Canvas, Fill, RadialGradient } from '@shopify/react-native-skia';
 import {
   SensorType,
   useAnimatedSensor,
@@ -22,19 +22,19 @@ export function SkiaMeshLayerImpl({ style }: Props) {
   const rotation = useAnimatedSensor(SensorType.ROTATION);
 
   const primaryCenter = useDerivedValue(() => {
-    if (reducedMotion) return vec(200, 300);
-    return vec(
-      200 + rotation.sensor.value.roll * 40,
-      300 + rotation.sensor.value.pitch * 40
-    );
+    if (reducedMotion) return { x: 200, y: 300 };
+    return {
+      x: 200 + rotation.sensor.value.roll * 40,
+      y: 300 + rotation.sensor.value.pitch * 40,
+    };
   });
 
   const secondaryCenter = useDerivedValue(() => {
-    if (reducedMotion) return vec(340, 520);
-    return vec(
-      340 + rotation.sensor.value.roll * 40,
-      520 - rotation.sensor.value.pitch * 20
-    );
+    if (reducedMotion) return { x: 340, y: 520 };
+    return {
+      x: 340 + rotation.sensor.value.roll * 40,
+      y: 520 - rotation.sensor.value.pitch * 20,
+    };
   });
 
   return (
