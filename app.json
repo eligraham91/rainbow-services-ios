@@ -51,6 +51,13 @@
           "resizeMode": "contain",
           "backgroundColor": "#F5F1E8"
         }
+      ],
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Unlock your private notes"
+        }
       ]
     ],
     "experiments": {
