@@ -1,7 +1,9 @@
 # Rainbow Services — Start Here iOS App
 
 ## What this is
-"Start Here" is a trauma-informed domestic violence support app for Rainbow Services (rainbowservicesdv.org). It guides survivors through understanding their situation, finding safety resources, and taking one clear next step — privately, with no account required.
+"Start Here" is a **national**, trauma-informed domestic violence support app. It gives survivors and supporters across the US tools to understand domestic violence, build a personal safety plan, and find local help — privately, with no account required.
+
+The app is built and maintained by Rainbow Services (rainbowservicesdv.org), a DV shelter and advocacy org in San Pedro, CA. It is **not** a Rainbow Services intake or referral tool. Rainbow Services programs are not the subject of screens or copy. RS appears only as subtle attribution in an About screen. The national resource locator surfaces shelters and services nationwide; Rainbow Services is listed as one resource in the Los Angeles/San Pedro area with no special prominence.
 
 ## Org context
 - **Rainbow Services** — DV shelter and advocacy org, San Pedro (Los Angeles), CA. Founded 1983.
@@ -45,11 +47,18 @@
 - Expo Router v6 (file-based routing under `app/`)
 - react-native-reanimated 4.1.7 — all animations (UI thread only, no legacy Animated)
 - react-native-worklets ~0.5.x — worklets runtime required by reanimated 4 (babel plugin: `react-native-worklets/plugin`)
-- @shopify/react-native-skia 2.2.12 — background mesh and skeleton shimmer
-- expo-blur — glassmorphic cards (native UIVisualEffectView on iOS)
+- @shopify/react-native-skia 2.2.12 — background mesh and skeleton shimmer **only**
+- expo-blur — glassmorphic cards (native UIVisualEffectView on iOS) **only** — never Skia for glass
 - expo-haptics — tactile button feedback
 - expo-sensors — gyroscope for mesh gradient (via reanimated useAnimatedSensor)
+- react-native-mmkv — AES-256 encrypted local storage for vault/plan data (Phase 4+)
+- expo-secure-store — stores MMKV encryption key in iOS Keychain (Phase 4+)
+- expo-local-authentication — FaceID/TouchID biometric gate for vault (Phase 4+)
+- expo-sharing + expo-print — safety plan PDF export (Phase 5+)
 - TypeScript 5.8, strict mode
+
+## Device testing note
+Screens that use `react-native-mmkv` or `expo-local-authentication` require a **native dev build** — they will not load in Expo Go. Run `eas build --platform ios --profile development` for full device testing of vault.tsx and plan.tsx.
 
 ## Key commands
 ```bash
@@ -85,8 +94,10 @@ Uses `"policy": "sdkVersion"` → `exposdk:54.0.0`. Matches Expo Go 54.0.2.
 - [x] **Phase 1** — Expo SDK 54, Router v6, EAS config, tunnel
 - [x] **Phase 2** — Motion engine: MeshGradientBg (Skia+gyro), GlassCard (expo-blur), SpringButton (haptics), SkeletonShimmer
 - [x] **Phase 3** — Swiss-grid dashboard, floating pill nav, kinetic routing, scaffold screens
-- [ ] **Phase 4** — Survivor safety: offline MMKV vault, biometric document vault, shake-to-exit panic mode, app icon camouflage
-- [ ] **Phase 5** — Full screen content: emergency locator, safety plan builder, legal options tree, resource finder
+- [ ] **Phase 4** — Safety architecture: MMKV encrypted vault, biometric auth (expo-local-authentication), shake-to-exit panic mode, AppState background masking, app icon camouflage
+- [ ] **Phase 5** — Full screen content: national resource locator (user-provided shelter list), emergency crisis triage, DV education, safety plan wizard, biometric vault UI, supporter guide, About screen
+- [ ] **Phase 6** — National shelter finder with live API (swap JSON data layer for API call)
+- [ ] **Phase 7** — App Store submission: replace placeholder assets, final QA, submission
 
 ## Design system
 Canonical tokens in `src/theme/colors.ts` (C export) and `src/styles/colors_and_type.css`:
@@ -133,20 +144,34 @@ Full rules in `docs/survivor-facing-rules.md`.
 ## File structure
 ```
 app/               Expo Router v6 screens
-  _layout.tsx      GestureHandlerRootView + StatusBar + Stack (fade_from_bottom)
+  _layout.tsx      GestureHandlerRootView + StatusBar + Stack + ShakeWatcher + PrivacyGuard
   index.tsx        Dashboard: EditorialHeader + ActionGrid + FloatingCommandPill
-  emergency.tsx    "I need help now" scaffold
-  plan.tsx         "I am making a plan" scaffold
-  vault.tsx        Secure vault scaffold
+  emergency.tsx    "I need help now" — national crisis triage
+  understand.tsx   "I am trying to understand" — DV education
+  plan.tsx         "I am making a plan" — safety plan wizard (MMKV-backed)
+  support.tsx      "I am helping someone else" — supporter guide
+  vault.tsx        Biometric-locked encrypted vault (MMKV, requires dev build)
+  resources.tsx    National resource locator (JSON data layer)
+  about.tsx        "Built by Rainbow Services" attribution
   stealth.tsx      Panic exit (black screen, "Weather", router.replace)
 assets/            PNG assets (1x1 placeholders — replace before App Store)
 docs/              Brand knowledge pack (voice, terminology, canonical figures)
 src/
   components/      Phase 2 motion components + ui/ (Phase 3)
     ui/            EditorialHeader, ActionGrid, FloatingCommandPill
+    PrivacyOverlay.tsx   AppState background masking
+    VaultEntry.tsx       Single encrypted note row
+  data/
+    resources.json       National DV shelter/resource list (user-provided)
+  hooks/
+    useShakeToExit.ts    Accelerometer shake → router.replace('/stealth')
   styles/          colors_and_type.css (canonical CSS tokens, reference only)
   theme/           colors.ts (C + Colors exports), typography.ts
-  utils/           motion.ts (useTraumaInformedMotion)
+  utils/
+    motion.ts      useTraumaInformedMotion
+    vault.ts       MMKV encrypted storage CRUD (vault + safety plan)
+    biometric.ts   expo-local-authentication wrapper
+    resourceSearch.ts  Filter/search resources.json (API-swappable interface)
 metro.config.js    Metro config
 eas.json           EAS build profiles
 app.json           Expo config

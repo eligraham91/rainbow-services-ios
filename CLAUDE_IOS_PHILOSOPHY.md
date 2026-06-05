@@ -4,9 +4,23 @@ This file is the architectural constitution for the Start Here app. Read it befo
 
 ---
 
+## Scope — Read This First
+
+"Start Here" is a **national** domestic violence support tool. It is built and maintained by Rainbow Services, but it is not a Rainbow Services intake app and not an advertisement for Rainbow Services programs.
+
+**What the app is:** Education about DV, a personal safety planning tool, a national resource/shelter locator, and crisis triage — for survivors and supporters anywhere in the US.
+
+**What the app is not:** A referral funnel for Rainbow Services programs. A donation surface. An org profile page.
+
+**Rainbow Services in the app:** RS appears in one place only — a subtle "Built by Rainbow Services" attribution on an About screen. In the resource locator, RS is listed as a single entry covering the Los Angeles/San Pedro area, with the same card treatment as every other listed resource. No featured placement, no badge, no special prominence.
+
+When building any screen, the subject is the **survivor's need**, not the organization's offerings. Copy is written for a survivor in Memphis, in Minneapolis, in Miami — not specifically for someone in San Pedro.
+
+---
+
 ## Who This Is For
 
-Survivors of domestic violence. Often in crisis. Often on borrowed time, on a shared device, in a space that is not safe. The app may be opened and closed in five seconds. Every interaction must be purposeful, calm, and never surprising. The UI is not a product — it is a lifeline dressed as a product.
+Survivors of domestic violence — and the people who want to help them. Often in crisis. Often on borrowed time, on a shared device, in a space that is not safe. The app may be opened and closed in five seconds. Every interaction must be purposeful, calm, and never surprising. The UI is not a product — it is a lifeline dressed as a product.
 
 This shapes everything: the physics of transitions, the weight of buttons, the silence of the background, the instant response to panic inputs.
 
@@ -150,6 +164,8 @@ All three share the same layout grid, typography system, and background layer.
 ---
 
 ## Pillar 7 — Brand Voice in UI Strings
+
+> **Scope reminder:** Copy is written for a national audience. When referencing hotlines or resources, always lead with the **National DV Hotline (1-800-799-7233)** as the primary resource. The Rainbow Services local line (310-547-9343) appears as a secondary, geography-labeled option. Program names (Rainbow House, Villa Paloma, Legal Clinic) appear only in the resource locator and About screen — not as the subject of general educational or crisis copy.
 
 UI copy follows the same constraints as website copy. Full rules in `docs/voice-rules.md` and `docs/terminology.md`. Non-negotiables for every string written in the app:
 
