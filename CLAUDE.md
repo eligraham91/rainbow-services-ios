@@ -94,20 +94,22 @@ Uses `"policy": "sdkVersion"` → `exposdk:54.0.0`. Matches Expo Go 54.0.2.
 - [x] **Phase 1** — Expo SDK 54, Router v6, EAS config, tunnel
 - [x] **Phase 2** — Motion engine: MeshGradientBg (Skia+gyro), GlassCard (expo-blur), SpringButton (haptics), SkeletonShimmer
 - [x] **Phase 3** — Swiss-grid dashboard, floating pill nav, kinetic routing, scaffold screens
-- [ ] **Phase 4** — Safety architecture: MMKV encrypted vault, biometric auth (expo-local-authentication), shake-to-exit panic mode, AppState background masking, app icon camouflage
-- [ ] **Phase 5** — Full screen content: national resource locator (user-provided shelter list), emergency crisis triage, DV education, safety plan wizard, biometric vault UI, supporter guide, About screen
+- [x] **Phase 4** — Safety architecture: MMKV encrypted vault, biometric auth, shake-to-exit (dismissAll+replace), AppState masking
+- [x] **Phase 5** — Full screen content: national resource locator (3,681 programs, geo-aware), emergency crisis triage, DV education, safety plan wizard, vault UI, supporter guide, About screen
+- [x] **Phase 5b (v2 overhaul)** — Four-tier nav (GlassTabBar), Tools spine (somatic/decipher/plan/learn, 16+ screens), warm dark theme (LightTheme/DarkTheme), DecoderEngine, EditorialScreen, CallSheet, ScreenScaffold, JetBrains Mono fonts, expo-glass-effect/expo-audio deps, legal tree (gated)
 - [ ] **Phase 6** — National shelter finder with live API (swap JSON data layer for API call)
-- [ ] **Phase 7** — App Store submission: replace placeholder assets, final QA, submission
+- [ ] **Phase 7** — App Store submission: replace placeholder assets, final QA, submission. Audio loop license clearance (Rainbow sign-off needed). iOS 26 dev build with native GlassView.
 
 ## Design system
-Canonical tokens in `src/theme/colors.ts` (C export) and `src/styles/colors_and_type.css`:
-- `creamBase` `#F5F1E8` — background
-- `creamCard` `#EDE4CE` — raised surfaces
-- `inkPrimary` `#1A1A1A` — headings, body
-- `inkMuted` `#4A4A4A` — captions, secondary
-- `purpleAnchor` `#4A148C` — brand purple, CTAs
-- `safetyRed` `#C62828` — **DV safety messaging only. Not for generic danger UI.**
-- `ruleLine` `#C4B99E` — dividers, card edges
+Canonical tokens via `useTheme()` from `src/theme/ThemeContext.tsx`. The `theme` object is mode-aware; use `theme.background`, `theme.text`, `theme.accent`, etc. in all new screens. The static `C`/`Colors` exports remain for legacy compatibility.
+
+**Light theme (day / default):** background `#F5F1E8`, surface `#EDE4CE`, text `#1A1A1A`, muted `#4A4A4A`, accent `#4A148C`, danger `#C62828`
+**Dark theme (warm dark / discreet):** background `#2A2618`, surface `#37331F`, text `#F3EEDD`, muted `#B6AE96`, accent `#9F6FE3`, danger `#E57373`
+
+- `theme.danger` — **DV safety messaging only. Not for generic error UI.**
+- `theme.rule` — dividers, card edges
+
+Fonts: Inter Tight 800/900 (display/headings), Inter 400/600 (body/labels), JetBrains Mono 400 (eyebrows, disclaimers, mono labels). All loaded via `@expo-google-fonts/*` in root layout.
 
 Fonts: Inter Tight (display/headings, weight 700–900) + Inter (body) + JetBrains Mono (eyebrows, labels, stats).
 
@@ -143,35 +145,64 @@ Full rules in `docs/survivor-facing-rules.md`.
 
 ## File structure
 ```
-app/               Expo Router v6 screens
-  _layout.tsx      GestureHandlerRootView + StatusBar + Stack + ShakeWatcher + PrivacyGuard
-  index.tsx        Dashboard: EditorialHeader + ActionGrid + FloatingCommandPill
-  emergency.tsx    "I need help now" — national crisis triage
-  understand.tsx   "I am trying to understand" — DV education
-  plan.tsx         "I am making a plan" — safety plan wizard (MMKV-backed)
-  support.tsx      "I am helping someone else" — supporter guide
-  vault.tsx        Biometric-locked encrypted vault (MMKV, requires dev build)
-  resources.tsx    National resource locator (JSON data layer)
-  about.tsx        "Built by Rainbow Services" attribution
-  stealth.tsx      Panic exit (black screen, "Weather", router.replace)
+app/               Expo Router v6 screens — four-tier navigation
+  _layout.tsx      Root: ThemeProvider, GestureHandlerRootView, MeshGradientBg, ShakeWatcher, PrivacyOverlay
+  (tabs)/          Four-tab group (Home, Find Help, Tools, Vault)
+    _layout.tsx    GlassTabBar + single QuickExitButton overlay
+    index.tsx      Home — 3-door entry + minor grid + privacy note
+    resources.tsx  Find Help — shelter/resource locator (geo-aware)
+    vault.tsx      Vault — biometric-locked encrypted vault (MMKV)
+    tools/
+      _layout.tsx  Nested Stack (tab bar persists while pushing)
+      index.tsx    Tools hub — 4 category cards
+      somatic/     Calm your body: breathe (4-7-8), listen (ambient), ground (5-4-3-2-1)
+      decipher/    Decode patterns: text-thread, financial, coercion, cycle
+      plan/        Make a plan: safety-plan, legal-prep (gated), shelter-expectations, de-escalation
+      learn/       Understand it: definitions, state-laws (searchable), dating, talk-to-friend
+  emergency.tsx    Modal: crisis triage (CALL 911 NOW, hotlines)
+  support.tsx      Modal: supporter guide
+  about.tsx        Modal: attribution (only place RS is named)
+  plan.tsx         Redirect → (tabs)/tools/plan/safety-plan
+  understand.tsx   Redirect → (tabs)/tools/learn/definitions
+  stealth.tsx      Panic exit — no chrome, black, outside (tabs)
 assets/            PNG assets (1x1 placeholders — replace before App Store)
 docs/              Brand knowledge pack (voice, terminology, canonical figures)
 src/
-  components/      Phase 2 motion components + ui/ (Phase 3)
-    ui/            EditorialHeader, ActionGrid, FloatingCommandPill
+  components/
+    GlassSurface.tsx     Single glass gate (reduce-transparency → solid; iOS26 GlassView; expo-blur fallback)
+    GlassTabBar.tsx      Custom tab bar with morphing spring highlight
+    QuickExitButton.tsx  Red × button: dismissAll + replace('/stealth') + Warning haptic
+    BackPill.tsx         Glass back button for leaf screens
+    GlassCard.tsx        expo-blur glassmorphic card (NOT Skia)
+    MeshGradientBg.tsx   Skia gyro-animated mesh (ONLY Skia use)
     PrivacyOverlay.tsx   AppState background masking
     VaultEntry.tsx       Single encrypted note row
+    ui/
+      ScreenScaffold.tsx  Transparent/safe-area wrapper, QuickExit slot
+      CallSheet.tsx       Two-tap-to-call bottom sheet
+      DecoderEngine.tsx   iMessage thread decoder + chip details + response copy
+      EditorialScreen.tsx Numbered blocks + readout card layout
   data/
-    resources.json       National DV shelter/resource list (user-provided)
+    decoder.ts           6 text-thread decoder examples + schema types
+    finDecoder.ts        4 financial abuse decoder examples
+    legal.ts             Legal decision tree data (gated — not wired to live screen)
+    stateLaws.ts         16 state protective order names + national hotline
+    shelter-data.json    3,681 national DV program records
+    zip-centroids.json   ZIP code lat/lng lookup table
   hooks/
-    useShakeToExit.ts    Accelerometer shake → router.replace('/stealth')
-  styles/          colors_and_type.css (canonical CSS tokens, reference only)
-  theme/           colors.ts (C + Colors exports), typography.ts
+    useShakeToExit.ts    Accelerometer shake → dismissAll + replace('/stealth')
+  styles/          colors_and_type.css (reference only)
+  theme/
+    colors.ts      LightTheme, DarkTheme, C, Colors exports
+    ThemeContext.tsx  ThemeProvider + useTheme() hook
+    typography.ts  Font role constants
   utils/
-    motion.ts      useTraumaInformedMotion
+    motion.ts      useTraumaInformedMotion → { reduceMotion: boolean }
     vault.ts       MMKV encrypted storage CRUD (vault + safety plan)
     biometric.ts   expo-local-authentication wrapper
-    resourceSearch.ts  Filter/search resources.json (API-swappable interface)
+    resourceSearch.ts  fetchShelters() — geo-aware shelter search
+    geoSearch.ts   Haversine + ZIP centroid lookup, radius expanding
+    shelterTypes.ts ShelterMapProgram interface + precision types
 metro.config.js    Metro config
 eas.json           EAS build profiles
 app.json           Expo config

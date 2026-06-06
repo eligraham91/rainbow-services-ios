@@ -144,22 +144,28 @@ The organizing idea: **the interface recedes, the content advances.** Chrome exi
 
 ---
 
-## Pillar 6 — Flat Hub Architecture
+## Pillar 6 — Four-Tier Navigation
 
-There are no tab bars. No hamburger menus. No bottom navigation bars with icons.
+The v2 architecture uses a four-tier navigation model. `FloatingCommandPill` is retired.
 
-**The FloatingCommandPill is the nav.** It lives 32px above the safe area on every screen. It has 3–4 actions max. It dismisses or contextually transforms per screen. It is always accessible by the user's right thumb.
+**Tier 0 — Safety chrome.** `QuickExitButton` (red ×, bottom-right) and `PrivacyOverlay` are mounted once at the tab-group level and persist across all tabs and nested stacks. Shake-to-exit is wired at the root layout. These are not optional and cannot be gated by screen.
 
-**Hub-and-spoke routing.** The home screen (`/`) is the hub. Screens are spokes. Users navigate hub → spoke → hub. Deep nesting (spoke → spoke → spoke) is a signal that the IA needs to be flattened.
+**Tier 1 — Glass tab bar.** `GlassTabBar` (custom `tabBar` prop on `<Tabs>`) provides four tabs: Home, Find Help, Tools, Vault. Uses `withSpring` morphing highlight, `ImpactFeedbackStyle.Medium` on tap. NOT the native iOS tab bar — the custom component is required for the morphing highlight and non-route Quick Exit overlay.
 
-**Progressive disclosure.** Show the one most important action. Reveal secondary actions through gesture or scroll. Never show everything at once. The user's cognitive load is already high — the interface does not add to it.
+**Tier 2 — Nested stacks within tabs.** The Tools tab hosts a `<Stack>` that pushes leaf screens (hub → category hub → tool screen). `BackPill` provides back navigation on leaf screens. Tab bar persists; the active highlight stays on Tools.
 
-**Screen templates over one-offs.** Every screen in the app is one of three types:
-1. **Focus screen** — single CTA, minimal text, full-height background. Used for decision points.
-2. **List screen** — scrollable content, card grid, skeleton loading state. Used for resources, options.
-3. **Detail screen** — rich content, back gesture, no bottom pill (or pill transformed to context-specific action).
+**Tier 3 — Root modals.** Emergency, Support, About are presented as `presentation: 'modal'` from the root Stack. They render `QuickExitButton` via `ScreenScaffold`. `/stealth` is a root route with `animation: 'none'` and no chrome — it is never inside `(tabs)`.
 
-All three share the same layout grid, typography system, and background layer.
+**Quick Exit sequence (safety-critical):** `Haptics.notificationAsync(Warning)` → `router.dismissAll()` → `router.replace('/stealth')`. `dismissAll()` is essential — without it, a user deep in a tools stack can swipe back into the app. This sequence is in `QuickExitButton` and `useShakeToExit`.
+
+**ScreenScaffold** is the workhorse layout wrapper. It provides transparent background (mesh bleeds through), safe-area insets, optional eyebrow/title/intro/back/disclaimer slots, and mounts `QuickExitButton` when `chrome={true}` (the default).
+
+**Progressive disclosure.** Hub screens show category cards. Category hubs show tool cards. Leaf screens go deep. Three levels max in the Tools stack.
+
+**Screen templates:**
+1. **Hub** — category cards via `GlassCard`, staggered `FadeInDown` entrance.
+2. **Editorial** — eyebrow + title + numbered blocks + readout card. Use `EditorialScreen`.
+3. **Interactive** — decoder thread, breathe sphere, ground steps. Custom layout within `ScreenScaffold`.
 
 ---
 
@@ -189,10 +195,10 @@ When you receive a prompt like "build the [screen name] screen," the following a
 1. **Check `CLAUDE.md` first** for tech stack, commands, and current phase status.
 2. **Read `src/theme/colors.ts`** — do not approximate brand colors from memory.
 3. **Respect `useTraumaInformedMotion()`** — every animated component gates on this.
-4. **GlassCard = expo-blur. Mesh = Skia. Everything else = Reanimated.** Never cross these.
-5. **No new navigation patterns** — use FloatingCommandPill + Expo Router. Do not introduce tab bars.
-6. **Content never above status bar, never below home indicator** — `SafeAreaView` edges everywhere.
-7. **Panic exit on every non-home screen** — FloatingCommandPill's exit action uses `router.replace('/stealth')`.
+4. **GlassCard = expo-blur. Mesh = Skia. GlassView = expo-glass-effect (iOS 26 dev build). Everything else = Reanimated.** Never cross these. GlassSurface is the single glass gate — use it, not raw BlurView.
+5. **Use `(tabs)` + `GlassTabBar` for tab navigation.** Do not use native iOS tab bars; the custom tabBar prop is required. Do not add FloatingCommandPill to any screen — it is retired.
+6. **Content never above status bar, never below home indicator** — `ScreenScaffold` handles safe-area insets. Use it on every new screen.
+7. **Panic exit: `dismissAll()` then `replace('/stealth')`** — never `replace` alone. Both `QuickExitButton` and `useShakeToExit` implement this sequence. Never animate opacity on a `GlassView` or its ancestors (GlassView opacity bug); animate matte child wrappers instead.
 8. **TypeScript strict** — no `any`, no suppression pragmas.
 9. **Commit in steps** — one logical unit per commit. Never `git add -A`.
 10. **Push to `claude/exciting-tesla-UR4HS`** unless instructed otherwise.
