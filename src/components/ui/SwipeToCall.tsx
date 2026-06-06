@@ -64,6 +64,7 @@ export function SwipeToCall({ dial, label }: SwipeToCallProps) {
       'worklet';
       triggered.value = false;
       lastHapticX.value = 0;
+      x.value = withSpring(0, { damping: 18, stiffness: 200 });
     })
     .onUpdate((e) => {
       'worklet';
