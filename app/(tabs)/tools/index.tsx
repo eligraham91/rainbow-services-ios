@@ -141,12 +141,12 @@ export default function ToolsHubScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { gap: 8 },
+  list: { gap: 10 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    gap: 14,
+    padding: 18,
+    gap: 16,
   },
   iconBox: {
     width: 46,
