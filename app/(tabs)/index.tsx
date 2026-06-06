@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassCard } from '@components/GlassCard';
+import { SwipeToCall } from '@components/ui/SwipeToCall';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useScrollOffset } from '@components/ScrollContext';
@@ -109,6 +110,17 @@ export default function HomeScreen() {
         </Text>
       </Animated.View>
 
+      {/* Hotline swipe-to-call */}
+      <Animated.View
+        entering={reduceMotion ? undefined : FadeInDown.duration(300).delay(120)}
+        style={styles.hotlineRow}
+      >
+        <SwipeToCall dial="3105479343" label="Slide to call · 310-547-9343" />
+        <Text style={[styles.dangerwarn, { color: theme.danger }]}>
+          CALL 911 NOW if in immediate danger.
+        </Text>
+      </Animated.View>
+
       {/* Three doors */}
       <View style={styles.doors}>
         {DOORS.map((d, i) => <Door key={d.num} item={d} index={i} />)}
@@ -148,6 +160,13 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     marginBottom: 28,
     maxWidth: 340,
+  },
+  hotlineRow: { alignItems: 'center', gap: 10, marginBottom: 24 },
+  dangerwarn: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textAlign: 'center',
   },
   doors: { gap: 10, marginBottom: 20 },
   door: {
