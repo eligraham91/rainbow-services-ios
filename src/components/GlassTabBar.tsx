@@ -8,22 +8,61 @@ import Animated, {
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { GlassSurface } from './GlassSurface';
+import { router } from 'expo-router';
+import Svg, { Path, Rect, Circle, G, Line } from 'react-native-svg';
+import { BlurView } from 'expo-blur';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 
-const TAB_LABELS: Record<string, string> = {
-  index: 'Home',
-  resources: 'Find Help',
-  tools: 'Tools',
-  vault: 'Vault',
-};
+// Tab configuration
+const TABS = [
+  { name: 'index',     label: 'Home' },
+  { name: 'resources', label: 'Find Help' },
+  { name: 'tools',    label: 'Tools' },
+  { name: 'vault',    label: 'Vault' },
+] as const;
 
-const TAB_ICONS: Record<string, string> = {
-  index: '⌂',
-  resources: '◎',
-  tools: '⌥',
-  vault: '⊕',
+// SVG icons — 22×22 viewBox
+function HomeIcon({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M3 12L12 3l9 9" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M5 10v9a1 1 0 001 1h4v-4h4v4h4a1 1 0 001-1v-9" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+function SearchIcon({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Circle cx={11} cy={11} r={7} stroke={color} strokeWidth={1.8} />
+      <Path d="M21 21l-4-4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+function GridIcon({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Rect x={3} y={3} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.8} />
+      <Rect x={14} y={3} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.8} />
+      <Rect x={3} y={14} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.8} />
+      <Rect x={14} y={14} width={7} height={7} rx={1.5} stroke={color} strokeWidth={1.8} />
+    </Svg>
+  );
+}
+function LockIcon({ color }: { color: string }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Rect x={5} y={11} width={14} height={10} rx={2} stroke={color} strokeWidth={1.8} />
+      <Path d="M8 11V7a4 4 0 018 0v4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+const ICON_MAP: Record<string, (color: string) => React.ReactElement> = {
+  index: (c) => <HomeIcon color={c} />,
+  resources: (c) => <SearchIcon color={c} />,
+  tools: (c) => <GridIcon color={c} />,
+  vault: (c) => <LockIcon color={c} />,
 };
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -31,20 +70,25 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
   const insets = useSafeAreaInsets();
   const { reduceMotion } = useTraumaInformedMotion();
 
-  const highlightX = useSharedValue(0);
-  const highlightW = useSharedValue(0);
+  const pillX = useSharedValue(0);
+  const pillW = useSharedValue(0);
   const tabRefs = useRef<Array<{ x: number; width: number } | null>>([]);
 
-  const highlightStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: highlightX.value }],
-    width: highlightW.value,
+  const pillStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: pillX.value }],
+    width: pillW.value,
   }));
 
   function handlePress(index: number, routeKey: string, routeName: string) {
     const ref = tabRefs.current[index];
-    if (ref && !reduceMotion) {
-      highlightX.value = withSpring(ref.x, { damping: 18, stiffness: 200 });
-      highlightW.value = withSpring(ref.width, { damping: 18, stiffness: 200 });
+    if (ref) {
+      if (!reduceMotion) {
+        pillX.value = withSpring(ref.x, { damping: 20, stiffness: 220 });
+        pillW.value = withSpring(ref.width, { damping: 20, stiffness: 220 });
+      } else {
+        pillX.value = ref.x;
+        pillW.value = ref.width;
+      }
     }
     const isFocused = state.index === index;
     const event = navigation.emit({ type: 'tabPress', target: routeKey, canPreventDefault: true });
@@ -54,33 +98,35 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     }
   }
 
+  async function handleExit() {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    router.dismissAll();
+    router.replace('/stealth');
+  }
+
+  const barBg = theme.dark ? 'rgba(42,38,24,0.82)' : 'rgba(245,241,232,0.82)';
+
   return (
-    <GlassSurface
+    <BlurView
+      intensity={65}
+      tint={theme.dark ? 'dark' : 'light'}
       style={[
         styles.bar,
-        {
-          paddingBottom: insets.bottom + 4,
-          borderTopColor: theme.rule,
-          backgroundColor: theme.dark ? 'rgba(42,38,24,0.7)' : 'rgba(245,241,232,0.7)',
-        },
+        { paddingBottom: insets.bottom + 6, borderTopColor: theme.rule },
       ]}
-      intensity={70}
     >
-      {/* morphing highlight pill */}
+      {/* Morphing active pill */}
       <Animated.View
-        style={[
-          styles.highlight,
-          { backgroundColor: theme.dark ? 'rgba(159,111,227,0.18)' : 'rgba(74,20,140,0.1)' },
-          highlightStyle,
-        ]}
+        style={[styles.pill, { backgroundColor: theme.accent }, pillStyle]}
         pointerEvents="none"
       />
 
+      {/* Tab buttons */}
       {state.routes.map((route, index) => {
-        const { options } = descriptors[route.key];
         const isFocused = state.index === index;
-        const label = TAB_LABELS[route.name] ?? route.name;
-        const icon = TAB_ICONS[route.name] ?? '·';
+        const label = TABS.find(t => t.name === route.name)?.label ?? route.name;
+        const renderIcon = ICON_MAP[route.name];
+        const iconColor = isFocused ? '#FFFFFF' : theme.faint;
 
         return (
           <Pressable
@@ -88,61 +134,104 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
             onLayout={(e) => {
               const { x, width } = e.nativeEvent.layout;
               tabRefs.current[index] = { x, width };
-              // initialise highlight under active tab
               if (isFocused) {
-                highlightX.value = x;
-                highlightW.value = width;
+                pillX.value = x;
+                pillW.value = width;
               }
             }}
             onPress={() => handlePress(index, route.key, route.name)}
             accessibilityRole="tab"
             accessibilityState={{ selected: isFocused }}
-            accessibilityLabel={options.tabBarAccessibilityLabel ?? label}
-            style={styles.tab}
+            accessibilityLabel={label}
+            style={[styles.tab, isFocused && styles.tabActive]}
           >
-            <Text style={[styles.icon, { color: isFocused ? theme.accent : theme.faint }]}>
-              {icon}
-            </Text>
-            <Text style={[styles.tabLabel, { color: isFocused ? theme.accent : theme.faint }]}>
-              {label}
-            </Text>
+            {renderIcon ? renderIcon(iconColor) : null}
+            {isFocused && (
+              <Text style={styles.tabLabel}>{label}</Text>
+            )}
           </Pressable>
         );
       })}
-    </GlassSurface>
+
+      {/* Quick Exit — lives in the tab bar, rightmost */}
+      <Pressable
+        onPress={handleExit}
+        style={styles.exitBtn}
+        accessibilityLabel="Quick exit"
+        accessibilityRole="button"
+        hitSlop={10}
+      >
+        <View style={styles.exitInner}>
+          <View style={[styles.arm, styles.armA]} />
+          <View style={[styles.arm, styles.armB]} />
+        </View>
+      </Pressable>
+    </BlurView>
   );
 }
+
+const ARM = 12;
+const THICK = 2;
 
 const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
-    overflow: 'hidden',
+    paddingHorizontal: 6,
+    gap: 2,
     position: 'relative',
   },
-  highlight: {
+  pill: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
-    borderRadius: 12,
-    marginVertical: 6,
-    marginHorizontal: 4,
+    top: 8,
+    height: 38,
+    borderRadius: 20,
+    zIndex: 0,
   },
   tab: {
     flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingTop: 12,
-    paddingBottom: 8,
-    gap: 3,
+    height: 38,
+    gap: 6,
+    borderRadius: 20,
+    zIndex: 1,
+    paddingHorizontal: 6,
   },
-  icon: {
-    fontSize: 18,
-  },
+  tabActive: {},
   tabLabel: {
     fontFamily: 'Inter',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.3,
+    color: '#FFFFFF',
+    letterSpacing: 0,
   },
+  exitBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#C62828',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    zIndex: 1,
+  },
+  exitInner: {
+    width: ARM + 4,
+    height: ARM + 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  arm: {
+    position: 'absolute',
+    width: ARM,
+    height: THICK,
+    backgroundColor: '#FFFFFF',
+    borderRadius: THICK,
+  },
+  armA: { transform: [{ rotate: '45deg' }] },
+  armB: { transform: [{ rotate: '-45deg' }] },
 });

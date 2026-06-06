@@ -20,6 +20,7 @@ import { useShakeToExit } from '@hooks/useShakeToExit';
 import { PrivacyOverlay } from '@components/PrivacyOverlay';
 import { MeshGradientBg } from '@components/MeshGradientBg';
 import { ThemeProvider, useTheme } from '@theme/ThemeContext';
+import { ScrollOffsetProvider, useScrollOffset } from '@components/ScrollContext';
 
 function ShakeWatcher() {
   useShakeToExit();
@@ -28,11 +29,12 @@ function ShakeWatcher() {
 
 function AppShell() {
   const { theme } = useTheme();
+  const scrollY = useScrollOffset();
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <MeshGradientBg />
+      <MeshGradientBg dark={theme.dark} scrollY={scrollY} />
       <ShakeWatcher />
       <Stack
         screenOptions={{
@@ -65,14 +67,15 @@ export default function RootLayout() {
     InterTight_900Black,
   });
 
-  // Render shell even before fonts load — system fallbacks cover the gap
   void fontsLoaded;
 
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <AppShell />
+          <ScrollOffsetProvider>
+            <AppShell />
+          </ScrollOffsetProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

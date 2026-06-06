@@ -17,8 +17,10 @@ import Animated, {
   withDelay,
   withSpring,
   withTiming,
+  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import * as Clipboard from 'expo-clipboard';
+import { useScrollOffset } from '@components/ScrollContext';
 
 import { GlassCard } from '@components/GlassCard';
 
@@ -254,6 +256,9 @@ export default function ResourcesScreen() {
   const [savedPrograms, setSavedPrograms] = useState<ShelterMapProgram[]>([]);
   const [showSafeList, setShowSafeList] = useState(false);
 
+  const scrollY = useScrollOffset();
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+
   const runSearch = useCallback((q: string, svcs: string[]) => {
     setLoading(true);
     fetchShelters({ query: q, services: svcs }).then(res => {
@@ -290,11 +295,13 @@ export default function ResourcesScreen() {
     <View style={styles.root}>
       
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ScrollView
+        <Animated.ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           <EditorialHeader
             title={`Find\nhelp near\nyou.`}
@@ -412,7 +419,7 @@ export default function ResourcesScreen() {
           <Text style={styles.dataNote}>
             Listed addresses are public records from FVPSA federal grants and state coalition directories. Confidential shelter locations are never shown. Call to verify availability and intake process before visiting.
           </Text>
-        </ScrollView>
+        </Animated.ScrollView>
       </SafeAreaView>
 
       <SafeListModal

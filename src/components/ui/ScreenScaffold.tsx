@@ -1,16 +1,18 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect } from 'react';
 import {
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, {
+  FadeInDown,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import { useTheme } from '@theme/ThemeContext';
 import { BackPill } from '@components/BackPill';
-import { QuickExitButton } from '@components/QuickExitButton';
 import { useTraumaInformedMotion } from '@utils/motion';
+import { useScrollOffset } from '@components/ScrollContext';
 
 interface ScreenScaffoldProps {
   children: ReactNode;
@@ -18,10 +20,26 @@ interface ScreenScaffoldProps {
   title?: string;
   intro?: string;
   showBack?: boolean;
-  chrome?: boolean;   // mount QuickExitButton (default true)
-  scroll?: boolean;   // wrap in ScrollView (default true)
+  chrome?: boolean;
+  scroll?: boolean;
   disclaimer?: string;
 }
+
+// Eyebrow with horizontal rule: [ LABEL ] ─────────
+function EyebrowRule({ label, color, ruleColor }: { label: string; color: string; ruleColor: string }) {
+  return (
+    <View style={eb.row}>
+      <Text style={[eb.text, { color }]}>[ {label} ]</Text>
+      <View style={[eb.rule, { backgroundColor: ruleColor }]} />
+    </View>
+  );
+}
+
+const eb = StyleSheet.create({
+  row: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
+  text: { fontFamily: 'JetBrainsMono-Regular', fontSize: 10, letterSpacing: 1.5 },
+  rule: { flex: 1, height: StyleSheet.hairlineWidth },
+});
 
 export function ScreenScaffold({
   children,
@@ -36,14 +54,30 @@ export function ScreenScaffold({
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const { reduceMotion } = useTraumaInformedMotion();
+  const scrollY = useScrollOffset();
 
-  const entering = reduceMotion ? undefined : FadeInDown.duration(320).delay(80);
+  const entering = reduceMotion ? undefined : FadeInDown.duration(300).delay(60);
+
+  // Reset scroll position when this screen unmounts so gradient returns to default
+  useEffect(() => {
+    return () => {
+      scrollY.value = 0;
+    };
+  }, [scrollY]);
+
+  const scrollHandler = useAnimatedScrollHandler((event) => {
+    scrollY.value = event.contentOffset.y;
+  });
 
   const header = (eyebrow || title || intro || showBack) ? (
     <Animated.View entering={entering} style={styles.header}>
-      {showBack && <BackPill />}
+      {showBack && (
+        <View style={styles.backRow}>
+          <BackPill />
+        </View>
+      )}
       {eyebrow ? (
-        <Text style={[styles.eyebrow, { color: theme.accent }]}>{eyebrow.toUpperCase()}</Text>
+        <EyebrowRule label={eyebrow} color={theme.muted} ruleColor={theme.rule} />
       ) : null}
       {title ? (
         <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
@@ -59,28 +93,28 @@ export function ScreenScaffold({
   ) : null;
 
   const content = (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
       {header}
       {children}
       {footer}
-      {/* spacer for Quick Exit button */}
-      {chrome && <View style={{ height: 96 }} />}
+      <View style={{ height: 24 }} />
     </View>
   );
 
   return (
     <View style={styles.flex}>
       {scroll ? (
-        <ScrollView
+        <Animated.ScrollView
           style={styles.flex}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           {content}
-        </ScrollView>
+        </Animated.ScrollView>
       ) : content}
-      {chrome && <QuickExitButton />}
     </View>
   );
 }
@@ -88,21 +122,16 @@ export function ScreenScaffold({
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1 },
-  root: { paddingHorizontal: 22, paddingBottom: 32 },
-  header: { marginBottom: 24 },
-  eyebrow: {
-    fontFamily: 'JetBrainsMono-Regular',
-    fontSize: 10,
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
+  root: { paddingHorizontal: 20, paddingBottom: 16 },
+  header: { marginBottom: 20 },
+  backRow: { marginBottom: 16 },
   title: {
     fontFamily: 'InterTight-ExtraBold',
-    fontSize: 38,
+    fontSize: 40,
     fontWeight: '900',
-    lineHeight: 42,
-    letterSpacing: -0.5,
-    marginBottom: 12,
+    lineHeight: 44,
+    letterSpacing: -1,
+    marginBottom: 10,
   },
   intro: {
     fontFamily: 'Inter',
@@ -111,9 +140,9 @@ const styles = StyleSheet.create({
   },
   disclaimer: {
     fontFamily: 'JetBrainsMono-Regular',
-    fontSize: 10,
-    letterSpacing: 1.5,
-    lineHeight: 16,
-    marginTop: 32,
+    fontSize: 9,
+    letterSpacing: 1.2,
+    lineHeight: 15,
+    marginTop: 28,
   },
 });

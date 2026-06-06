@@ -17,8 +17,10 @@ import Animated, {
   withDelay,
   withSpring,
   withTiming,
+  useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { useScrollOffset } from '@components/ScrollContext';
 
 import { GlassCard } from '@components/GlassCard';
 
@@ -168,6 +170,9 @@ export default function VaultScreen() {
   const [plan, setPlan] = useState<SafetyPlanData | null>(null);
   const [showAddNote, setShowAddNote] = useState(false);
 
+  const scrollY = useScrollOffset();
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+
   const loadData = useCallback(() => {
     try {
       setNotes(getVaultItems());
@@ -287,10 +292,12 @@ export default function VaultScreen() {
     <View style={styles.root}>
       
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ScrollView
+        <Animated.ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           <Text style={styles.headerTitle}>Private{'\n'}notes.</Text>
           <Text style={styles.headerSub}>Only visible on this device.</Text>
@@ -340,7 +347,7 @@ export default function VaultScreen() {
               <Text style={styles.clearBtnText}>Remove all saved data from this device</Text>
             </Pressable>
           </AnimatedItem>
-        </ScrollView>
+        </Animated.ScrollView>
       </SafeAreaView>
 
       <AddNoteModal
