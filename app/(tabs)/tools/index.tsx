@@ -102,7 +102,7 @@ function CategoryCard({ item, index }: { item: typeof CATEGORIES[number]; index:
       <Pressable
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          setTimeout(() => router.push(item.route), 100);
+          router.push(item.route);
         }}
         style={({ pressed }) => [pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}
         accessibilityRole="button"

@@ -361,7 +361,7 @@ export default function VaultScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.creamBase },
+  root: { flex: 1 },
   safe: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: {

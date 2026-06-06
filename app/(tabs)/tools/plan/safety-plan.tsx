@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   TextInput,
   StyleSheet,
   Pressable,
@@ -12,10 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
+  useAnimatedScrollHandler,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
+import { useScrollOffset } from '@components/ScrollContext';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import { GlassCard } from '@components/GlassCard';
@@ -291,6 +292,8 @@ function CompleteView({
 
 export default function PlanScreen() {
   const router = useRouter();
+  const scrollY = useScrollOffset();
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
   const [stage, setStage] = useState<'loading' | 'intro' | 'steps' | 'done'>('loading');
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<SafetyPlanData>({
@@ -350,11 +353,13 @@ export default function PlanScreen() {
         <View style={{ paddingHorizontal: 22, paddingTop: 8 }}>
           <BackPill />
         </View>
-        <ScrollView
+        <Animated.ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
         >
           {stage === 'intro' && (
             <IntroView onBegin={() => { setStepIndex(0); setStage('steps'); }} />
@@ -377,7 +382,7 @@ export default function PlanScreen() {
               onViewVault={() => router.push('/(tabs)/vault')}
             />
           )}
-        </ScrollView>
+        </Animated.ScrollView>
       </SafeAreaView>
       <QuickExitButton />
     </View>
@@ -385,7 +390,7 @@ export default function PlanScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: Colors.creamBase },
+  root: { flex: 1 },
   safe: { flex: 1 },
   scroll: { flex: 1 },
   scrollContent: {

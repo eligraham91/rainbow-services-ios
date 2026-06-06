@@ -14,6 +14,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useTraumaInformedMotion } from '@utils/motion';
+import { useTheme } from '@theme/ThemeContext';
 import { C } from '@theme/colors';
 
 interface GlassCardProps {
@@ -42,6 +43,7 @@ export function GlassCard({
   style,
 }: GlassCardProps) {
   const { reduceMotion: reducedMotion } = useTraumaInformedMotion();
+  const { theme } = useTheme();
 
   const borderOpacityValue = useDerivedValue(() => {
     if (reducedMotion) return 0.15;
@@ -61,11 +63,13 @@ export function GlassCard({
     );
   }
 
+  const cardBg = theme.dark ? 'rgba(55,51,31,0.35)' : 'rgba(245,241,232,0.25)';
+
   return (
-    <AnimatedView style={[styles.card, animatedBorderStyle, style]}>
+    <AnimatedView style={[styles.card, { backgroundColor: cardBg }, animatedBorderStyle, style]}>
       <BlurView
         intensity={intensity}
-        tint="light"
+        tint={theme.dark ? 'dark' : 'light'}
         experimentalBlurMethod="dimezisBlurView"
         style={StyleSheet.absoluteFill}
       />
@@ -79,7 +83,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-    backgroundColor: 'rgba(245, 241, 232, 0.25)',
   },
   androidFallback: {
     backgroundColor: `${C.creamCard}E6`, // ~90% opacity cream card

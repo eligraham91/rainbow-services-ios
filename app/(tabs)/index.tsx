@@ -1,12 +1,13 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, useAnimatedScrollHandler } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassCard } from '@components/GlassCard';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
+import { useScrollOffset } from '@components/ScrollContext';
 
 interface DoorItem {
   num: string;
@@ -80,12 +81,16 @@ export default function HomeScreen() {
   const { theme } = useTheme();
   const { reduceMotion } = useTraumaInformedMotion();
   const insets = useSafeAreaInsets();
+  const scrollY = useScrollOffset();
+  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
 
   return (
-    <ScrollView
+    <Animated.ScrollView
       style={styles.root}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
       showsVerticalScrollIndicator={false}
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
     >
       {/* Eyebrow */}
       <Animated.View
@@ -119,7 +124,7 @@ export default function HomeScreen() {
           <Text style={[styles.aboutText, { color: theme.faint }]}>About this app</Text>
         </Pressable>
       </Animated.View>
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 
