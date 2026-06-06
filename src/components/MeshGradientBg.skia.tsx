@@ -18,7 +18,7 @@ interface Props {
  * is available (i.e. EAS dev build or production build, not plain Expo Go).
  */
 export function SkiaMeshLayerImpl({ style }: Props) {
-  const reducedMotion = useTraumaInformedMotion();
+  const { reduceMotion: reducedMotion } = useTraumaInformedMotion();
   const rotation = useAnimatedSensor(SensorType.ROTATION);
 
   const primaryCenter = useDerivedValue(() => {

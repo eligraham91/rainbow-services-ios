@@ -15,9 +15,10 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { MeshGradientBg } from '@components/MeshGradientBg';
+import { QuickExitButton } from '@components/QuickExitButton';
+
 import { GlassCard } from '@components/GlassCard';
-import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
+
 import { EditorialHeader } from '@components/ui/EditorialHeader';
 import {
   SectionLabel,
@@ -54,7 +55,6 @@ export default function SupportScreen() {
 
   return (
     <View style={styles.root}>
-      <MeshGradientBg />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
@@ -186,7 +186,7 @@ export default function SupportScreen() {
           </AnimatedCard>
         </ScrollView>
       </SafeAreaView>
-      <FloatingCommandPill />
+      <QuickExitButton />
     </View>
   );
 }

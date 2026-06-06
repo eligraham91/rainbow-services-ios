@@ -41,7 +41,7 @@ export function GlassCard({
   intensity = 18,
   style,
 }: GlassCardProps) {
-  const reducedMotion = useTraumaInformedMotion();
+  const { reduceMotion: reducedMotion } = useTraumaInformedMotion();
 
   const borderOpacityValue = useDerivedValue(() => {
     if (reducedMotion) return 0.15;

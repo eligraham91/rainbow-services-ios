@@ -26,6 +26,7 @@ export function useShakeToExit(): void {
         if (shakeTimes.current.length >= REQUIRED_SHAKES) {
           shakeTimes.current = [];
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          router.dismissAll();
           router.replace('/stealth');
         }
       }

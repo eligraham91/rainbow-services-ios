@@ -19,9 +19,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
-import { MeshGradientBg } from '@components/MeshGradientBg';
+
 import { GlassCard } from '@components/GlassCard';
-import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
+
 import { SectionLabel, HRule } from '@components/Primitives';
 import { LockIcon } from '@components/Icons';
 import { VaultEntry } from '@components/VaultEntry';
@@ -259,7 +259,7 @@ export default function VaultScreen() {
   if (authState === 'loading') {
     return (
       <View style={[styles.root, styles.center]}>
-        <MeshGradientBg />
+        
       </View>
     );
   }
@@ -267,7 +267,7 @@ export default function VaultScreen() {
   if (authState === 'locked') {
     return (
       <View style={styles.root}>
-        <MeshGradientBg />
+        
         <SafeAreaView style={[styles.safe, styles.center]} edges={['top']}>
           <LockIcon size={48} color={Colors.purpleAnchor} />
           <Text style={styles.lockTitle}>{'Your private\nnotes.'}</Text>
@@ -285,7 +285,7 @@ export default function VaultScreen() {
 
   return (
     <View style={styles.root}>
-      <MeshGradientBg />
+      
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
@@ -348,7 +348,7 @@ export default function VaultScreen() {
         onClose={() => setShowAddNote(false)}
         onSave={handleAddNote}
       />
-      <FloatingCommandPill />
+      { /* Quick Exit from (tabs)/_layout.tsx */ }
     </View>
   );
 }

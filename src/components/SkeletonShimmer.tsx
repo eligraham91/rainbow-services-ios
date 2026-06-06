@@ -46,7 +46,7 @@ function ReanimatedShimmer({
   borderRadius = 6,
   style,
 }: SkeletonShimmerProps) {
-  const reducedMotion = useTraumaInformedMotion();
+  const { reduceMotion: reducedMotion } = useTraumaInformedMotion();
   const progress = useSharedValue(0);
 
   useEffect(() => {

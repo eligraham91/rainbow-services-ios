@@ -56,7 +56,7 @@ export function SpringButton({
   style,
   href,
 }: SpringButtonProps) {
-  const reducedMotion = useTraumaInformedMotion();
+  const { reduceMotion: reducedMotion } = useTraumaInformedMotion();
   const scale = useSharedValue(1);
   const router = useRouter();
 

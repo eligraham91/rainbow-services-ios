@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "scheme": "starthere",
     "splash": {
       "image": "./assets/splash.png",
@@ -25,7 +25,6 @@
       "bundleIdentifier": "org.rainbowservicesdv.starthere",
       "buildNumber": "1",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Used to find nearby support resources.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -58,7 +57,8 @@
         {
           "faceIDPermission": "Unlock your private notes"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true

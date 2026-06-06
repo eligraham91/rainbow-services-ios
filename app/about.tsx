@@ -7,16 +7,16 @@ import {
   Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MeshGradientBg } from '@components/MeshGradientBg';
+import { QuickExitButton } from '@components/QuickExitButton';
+
 import { GlassCard } from '@components/GlassCard';
-import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
+
 import { HRule } from '@components/Primitives';
 import { Colors } from '@theme/colors';
 
 export default function AboutScreen() {
   return (
     <View style={styles.root}>
-      <MeshGradientBg />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
@@ -76,7 +76,7 @@ export default function AboutScreen() {
           </Text>
         </ScrollView>
       </SafeAreaView>
-      <FloatingCommandPill />
+      <QuickExitButton />
     </View>
   );
 }

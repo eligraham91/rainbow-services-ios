@@ -19,9 +19,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import * as Clipboard from 'expo-clipboard';
-import { MeshGradientBg } from '@components/MeshGradientBg';
+
 import { GlassCard } from '@components/GlassCard';
-import { FloatingCommandPill } from '@components/ui/FloatingCommandPill';
+
 import { EditorialHeader } from '@components/ui/EditorialHeader';
 import { SectionLabel, HRule } from '@components/Primitives';
 import { AlertIcon, PhoneIcon, BookmarkIcon, CopyIcon, TrashIcon } from '@components/Icons';
@@ -288,7 +288,7 @@ export default function ResourcesScreen() {
 
   return (
     <View style={styles.root}>
-      <MeshGradientBg />
+      
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
@@ -422,7 +422,7 @@ export default function ResourcesScreen() {
         onClose={() => setShowSafeList(false)}
       />
 
-      <FloatingCommandPill />
+      { /* Quick Exit from (tabs)/_layout.tsx */ }
     </View>
   );
 }

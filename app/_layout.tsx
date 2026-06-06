@@ -3,32 +3,77 @@ import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Colors } from '@theme/colors';
+import {
+  useFonts,
+  JetBrainsMono_400Regular,
+} from '@expo-google-fonts/jetbrains-mono';
+import {
+  Inter_400Regular,
+  Inter_600SemiBold,
+} from '@expo-google-fonts/inter';
+import {
+  InterTight_700Bold,
+  InterTight_800ExtraBold,
+  InterTight_900Black,
+} from '@expo-google-fonts/inter-tight';
 import { useShakeToExit } from '@hooks/useShakeToExit';
 import { PrivacyOverlay } from '@components/PrivacyOverlay';
+import { MeshGradientBg } from '@components/MeshGradientBg';
+import { ThemeProvider, useTheme } from '@theme/ThemeContext';
 
-// Null-render component so the hook lifecycle ties to the root tree
 function ShakeWatcher() {
   useShakeToExit();
   return null;
 }
 
+function AppShell() {
+  const { theme } = useTheme();
+
+  return (
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
+      <StatusBar style={theme.dark ? 'light' : 'dark'} />
+      <MeshGradientBg />
+      <ShakeWatcher />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade_from_bottom',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="emergency" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="support" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="about" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="stealth" options={{ headerShown: false, animation: 'none' }} />
+      </Stack>
+      <PrivacyOverlay />
+    </View>
+  );
+}
+
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    JetBrainsMono_400Regular,
+    'JetBrainsMono-Regular': JetBrainsMono_400Regular,
+    Inter_400Regular,
+    Inter: Inter_400Regular,
+    Inter_600SemiBold,
+    InterTight_700Bold,
+    InterTight_800ExtraBold,
+    'InterTight-ExtraBold': InterTight_800ExtraBold,
+    InterTight_900Black,
+  });
+
+  // Render shell even before fonts load — system fallbacks cover the gap
+  void fontsLoaded;
+
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <View style={[styles.root, { backgroundColor: Colors.creamBase }]}>
-          <StatusBar style="dark" />
-          <ShakeWatcher />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: 'fade_from_bottom',
-              contentStyle: { backgroundColor: 'transparent' },
-            }}
-          />
-          <PrivacyOverlay />
-        </View>
+        <ThemeProvider>
+          <AppShell />
+        </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

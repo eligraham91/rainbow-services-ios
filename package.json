@@ -15,13 +15,18 @@
     "submit:ios": "eas submit --platform ios"
   },
   "dependencies": {
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/inter-tight": "^0.4.2",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@shopify/react-native-skia": "2.2.12",
     "expo": "~54.0.0",
+    "expo-audio": "~1.1.1",
     "expo-blur": "~15.0.8",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.12",
+    "expo-glass-effect": "~0.1.10",
     "expo-haptics": "~15.0.8",
     "expo-linking": "~8.0.12",
     "expo-local-authentication": "~17.0.8",
