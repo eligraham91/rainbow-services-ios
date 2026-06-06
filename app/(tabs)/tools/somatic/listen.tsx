@@ -1,36 +1,75 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View, PanResponder } from 'react-native';
-import { ScreenScaffold } from '@components/ui/ScreenScaffold';
-import { GlassCard } from '@components/GlassCard';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
+import {
+  useSharedValue,
+  useDerivedValue,
+  useAnimatedReaction,
+  withSpring,
+  runOnJS,
+} from 'react-native-reanimated';
+import { useWindowDimensions } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { BackPill } from '@components/BackPill';
 import { useTheme } from '@theme/ThemeContext';
 
-// expo-audio is bundled but requires a real audio file.
-// The listen screen renders a complete UI; audio plays when an asset is provided.
 let useAudioPlayer: ((source: unknown) => { volume: number; playing: boolean; play(): void; pause(): void }) | null = null;
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const ea = require('expo-audio');
   useAudioPlayer = ea.useAudioPlayer;
 } catch {
   // not available in this build
 }
 
+const WAVE_H = 200;
+const MIDLINE = 100;
+
 export default function ListenScreen() {
   const { theme } = useTheme();
-  const [volume, setVolume] = useState(0.6);
-  const [playing, setPlaying] = useState(false);
-  const dragStartY = useRef(0);
-  const dragStartVol = useRef(volume);
+  const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
-  // Audio integration — wired when listen-loop.m4a is present
+  const [playing, setPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.6);
+
   const player = useAudioPlayer ? useAudioPlayer(null) : null;
 
-  useEffect(() => {
+  const waveHeight = useSharedValue(MIDLINE);
+
+  const wavePath = useDerivedValue(() => {
+    const p = Skia.Path.Make();
+    p.moveTo(0, MIDLINE);
+    p.quadTo(width / 2, waveHeight.value, width, MIDLINE);
+    return p;
+  });
+
+  useAnimatedReaction(
+    () => waveHeight.value,
+    (h) => {
+      const vol = Math.max(0, Math.min(1, (WAVE_H - h) / WAVE_H));
+      runOnJS(setVolume)(vol);
+    }
+  );
+
+  React.useEffect(() => {
     if (!player) return;
     player.volume = volume;
   }, [volume, player]);
 
+  const pan = Gesture.Pan()
+    .onUpdate((e) => {
+      'worklet';
+      waveHeight.value = Math.max(10, Math.min(190, e.y));
+    })
+    .onEnd(() => {
+      'worklet';
+      waveHeight.value = withSpring(MIDLINE);
+    });
+
   function togglePlay() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (!player) {
       setPlaying(!playing);
       return;
@@ -39,95 +78,115 @@ export default function ListenScreen() {
     else { player.play(); setPlaying(true); }
   }
 
-  const panResponder = PanResponder.create({
-    onStartShouldSetPanResponder: () => true,
-    onPanResponderGrant: (e) => {
-      dragStartY.current = e.nativeEvent.pageY;
-      dragStartVol.current = volume;
-    },
-    onPanResponderMove: (e) => {
-      const dy = dragStartY.current - e.nativeEvent.pageY;
-      const newVol = Math.max(0, Math.min(1, dragStartVol.current + dy / 200));
-      setVolume(newVol);
-    },
-  });
-
   const volPercent = Math.round(volume * 100);
 
   return (
-    <ScreenScaffold
-      eyebrow="Listen"
-      title={"Ambient\nsound."}
-      intro="A steady background tone to anchor your attention. Drag up or down to adjust volume."
-      showBack
-    >
-      <GlassCard style={styles.player}>
-        {/* Wave visualization placeholder */}
-        <View style={styles.waveArea}>
-          {Array.from({ length: 24 }).map((_, i) => {
-            const h = playing ? 8 + Math.sin(i * 0.8) * 24 * volume + 8 : 4;
-            return (
-              <View
-                key={i}
-                style={[styles.wavebar, {
-                  height: h,
-                  backgroundColor: theme.accent,
-                  opacity: playing ? 0.6 + (i % 3) * 0.1 : 0.2,
-                }]}
-              />
-            );
-          })}
-        </View>
+    <View style={styles.root}>
+      <View style={[styles.backRow, { paddingTop: insets.top + 8 }]}>
+        <BackPill />
+      </View>
 
-        {/* Volume drag control */}
-        <View
-          style={styles.volArea}
-          {...panResponder.panHandlers}
-          accessible
-          accessibilityLabel={`Volume ${volPercent} percent. Drag up to increase, down to decrease.`}
-        >
-          <Text style={[styles.volLabel, { color: theme.muted }]}>VOLUME</Text>
-          <View style={[styles.volBar, { backgroundColor: theme.rule }]}>
-            <View style={[styles.volFill, { width: `${volPercent}%` as '60%', backgroundColor: theme.accent }]} />
-          </View>
-          <Text style={[styles.volPct, { color: theme.muted }]}>{volPercent}%</Text>
-        </View>
-
-        {/* Play/pause button */}
-        <View style={styles.controls}>
-          <Pressable
-            onPress={togglePlay}
-            style={[styles.playBtn, { borderColor: theme.accent, borderWidth: 1.5 }]}
-            accessibilityRole="button"
-            accessibilityLabel={playing ? 'Pause' : 'Play ambient sound'}
-          >
-            <Text style={[styles.playLabel, { color: theme.accent }]}>
-              {playing ? 'Pause' : 'Play'}
-            </Text>
-          </Pressable>
-        </View>
-      </GlassCard>
-
-      {!player && (
-        <Text style={[styles.note, { color: theme.faint }]}>
-          Audio file not yet bundled. Contact Rainbow Services to add the ambient loop.
+      <View style={styles.body}>
+        <Text style={[styles.eyebrow, { color: theme.muted }]}>
+          {'[ DRAG TO SHAPE THE TONE ]'}
         </Text>
-      )}
-    </ScreenScaffold>
+
+        <Text style={[styles.title, { color: theme.text }]}>{'Ambient\nsound.'}</Text>
+
+        <GestureDetector gesture={pan}>
+          <Canvas style={[styles.canvas, { width }]}>
+            <Path
+              path={wavePath}
+              color={theme.accent}
+              style="stroke"
+              strokeWidth={2.5}
+              strokeCap="round"
+            />
+          </Canvas>
+        </GestureDetector>
+
+        <View style={styles.volRow}>
+          <Text style={[styles.volLabel, { color: theme.muted }]}>VOLUME</Text>
+          <Text style={[styles.volPct, { color: theme.accent }]}>{volPercent}%</Text>
+        </View>
+
+        <Pressable
+          onPress={togglePlay}
+          style={[styles.playBtn, { borderColor: theme.accent }]}
+          accessibilityRole="button"
+          accessibilityLabel={playing ? 'Pause' : 'Play ambient sound'}
+        >
+          <Text style={[styles.playLabel, { color: theme.accent }]}>
+            {playing ? 'Pause' : 'Play'}
+          </Text>
+        </Pressable>
+
+        {!player && (
+          <Text style={[styles.note, { color: theme.faint }]}>
+            Audio file not yet bundled.
+          </Text>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  player: { padding: 24, marginBottom: 16 },
-  waveArea: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 60, gap: 3, marginBottom: 24 },
-  wavebar: { width: 4, borderRadius: 2, minHeight: 4 },
-  volArea: { marginBottom: 20 },
-  volLabel: { fontFamily: 'JetBrainsMono-Regular', fontSize: 10, letterSpacing: 1.5, marginBottom: 8 },
-  volBar: { height: 6, borderRadius: 3, marginBottom: 6, overflow: 'hidden' },
-  volFill: { height: '100%', borderRadius: 3 },
-  volPct: { fontFamily: 'JetBrainsMono-Regular', fontSize: 12, letterSpacing: 1, textAlign: 'right' },
-  controls: { alignItems: 'center' },
-  playBtn: { paddingVertical: 14, paddingHorizontal: 40, borderWidth: 1.5 },
-  playLabel: { fontFamily: 'InterTight-ExtraBold', fontSize: 18, fontWeight: '800' },
-  note: { fontFamily: 'Inter', fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  root: { flex: 1 },
+  backRow: { paddingHorizontal: 20 },
+  body: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingBottom: 80,
+    gap: 24,
+  },
+  eyebrow: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 10,
+    letterSpacing: 1.5,
+    textAlign: 'center',
+  },
+  title: {
+    fontFamily: 'InterTight-ExtraBold',
+    fontSize: 42,
+    fontWeight: '900',
+    letterSpacing: -1,
+    textAlign: 'center',
+    lineHeight: 46,
+  },
+  canvas: { height: WAVE_H },
+  volRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  volLabel: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 10,
+    letterSpacing: 1.5,
+  },
+  volPct: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 14,
+    letterSpacing: 1,
+  },
+  playBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderWidth: 1.5,
+    borderRadius: 6,
+  },
+  playLabel: {
+    fontFamily: 'InterTight-ExtraBold',
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  note: {
+    fontFamily: 'Inter',
+    fontSize: 13,
+    lineHeight: 19,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
 });

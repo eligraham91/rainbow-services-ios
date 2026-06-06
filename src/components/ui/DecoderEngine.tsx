@@ -83,27 +83,26 @@ export function DecoderEngine({ eyebrow, title, examples }: DecoderEngineProps) 
                 const isActive = chip && activeChip?.id === chip.id;
 
                 if (chip) {
-                  return (
+                  const words = seg.t.trim().split(/\s+/).filter(Boolean);
+                  return words.map((word, wi) => (
                     <Pressable
-                      key={si}
+                      key={`${si}-${wi}`}
                       onPress={() => setActiveChip(isActive ? null : chip)}
                       accessibilityRole="button"
-                      accessibilityLabel={`Highlighted phrase: ${seg.t.trim()}. Tap to decode.`}
+                      accessibilityLabel={wi === 0 ? `Highlighted phrase: ${seg.t.trim()}. Tap to decode.` : undefined}
+                      accessibilityElementsHidden={wi > 0}
+                      style={[
+                        styles.pill,
+                        isActive
+                          ? [styles.pillActive, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.35)' : 'rgba(74,20,140,0.18)' }]
+                          : { backgroundColor: 'rgba(45,30,61,0.10)' },
+                      ]}
                     >
-                      <Text style={[
-                        styles.bubbleText,
-                        styles.highlighted,
-                        {
-                          color: bubble.from === 'them' ? theme.text : '#FFFFFF',
-                          backgroundColor: isActive
-                            ? (theme.dark ? 'rgba(159,111,227,0.35)' : 'rgba(74,20,140,0.18)')
-                            : (theme.dark ? 'rgba(159,111,227,0.16)' : 'rgba(74,20,140,0.11)'),
-                        },
-                      ]}>
-                        {seg.t}
+                      <Text style={[styles.pillText, { color: bubble.from === 'them' ? theme.text : '#FFFFFF' }]}>
+                        {word}
                       </Text>
                     </Pressable>
-                  );
+                  ));
                 }
 
                 return (
@@ -197,13 +196,14 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   bubbleText: { fontFamily: 'Inter', fontSize: 14, lineHeight: 20 },
-  highlighted: {
-    borderRadius: 4,
-    overflow: 'hidden',
-    paddingHorizontal: 2,
-    textDecorationLine: 'underline',
-    textDecorationStyle: 'dotted',
+  pill: {
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    marginVertical: 2,
   },
+  pillActive: {},
+  pillText: { fontFamily: 'Inter', fontSize: 14, lineHeight: 20 },
   chipDetail: {
     padding: 16,
     marginBottom: 12,
