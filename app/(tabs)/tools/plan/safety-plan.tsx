@@ -32,6 +32,9 @@ import {
   type SafetyPlanData,
   type SafetyPlanSection,
 } from '@utils/vault';
+import { createMMKV } from 'react-native-mmkv';
+
+const flags = createMMKV({ id: 'sh-flags' });
 
 const ENTRY_SPRING = { mass: 1, stiffness: 200, damping: 22 } as const;
 
@@ -331,6 +334,7 @@ export default function PlanScreen() {
     if (stepIndex < STEPS.length - 1) {
       setStepIndex(i => i + 1);
     } else {
+      try { flags.set('sh_plan_saved', true); } catch {}
       setStage('done');
     }
   };
@@ -339,6 +343,7 @@ export default function PlanScreen() {
     if (stepIndex < STEPS.length - 1) {
       setStepIndex(i => i + 1);
     } else {
+      try { flags.set('sh_plan_saved', true); } catch {}
       setStage('done');
     }
   };

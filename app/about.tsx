@@ -5,39 +5,41 @@ import {
   ScrollView,
   StyleSheet,
   Linking,
+  Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuickExitButton } from '@components/QuickExitButton';
-
 import { GlassCard } from '@components/GlassCard';
-
 import { HRule } from '@components/Primitives';
-import { Colors } from '@theme/colors';
+import { useTheme } from '@theme/ThemeContext';
 
 export default function AboutScreen() {
+  const { theme, override, setOverride } = useTheme();
+  const darkEnabled = override === 'dark';
+
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.wordmark}>Start Here</Text>
-          <Text style={styles.tagline}>
+          <Text style={[styles.wordmark, { color: theme.text }]}>Start Here</Text>
+          <Text style={[styles.tagline, { color: theme.muted }]}>
             A national domestic violence support tool.
           </Text>
 
           <HRule style={styles.hRule} />
 
           <GlassCard style={styles.card}>
-            <Text style={styles.attrLabel}>BUILT BY</Text>
-            <Text style={styles.attrValue}>Rainbow Services</Text>
-            <Text style={styles.attrBody}>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>BUILT BY</Text>
+            <Text style={[styles.attrValue, { color: theme.text }]}>Rainbow Services</Text>
+            <Text style={[styles.attrBody, { color: theme.text }]}>
               Rainbow Services is a domestic violence shelter and advocacy organization in San Pedro, Los Angeles, CA. Founded 1983. 43+ years serving survivors.
             </Text>
             <Text
-              style={styles.attrLink}
+              style={[styles.attrLink, { color: theme.accent }]}
               onPress={() => Linking.openURL('https://www.rainbowservicesdv.org')}
             >
               rainbowservicesdv.org
@@ -45,33 +47,55 @@ export default function AboutScreen() {
           </GlassCard>
 
           <GlassCard style={styles.card}>
-            <Text style={styles.attrLabel}>CRISIS HOTLINE</Text>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>CRISIS HOTLINE</Text>
             <Text
-              style={styles.attrPhone}
+              style={[styles.attrPhone, { color: theme.accent }]}
               onPress={() => Linking.openURL('tel:3105479343')}
             >
               310-547-9343
             </Text>
-            <Text style={styles.attrBody}>
+            <Text style={[styles.attrBody, { color: theme.text }]}>
               Free, confidential, 24/7. English and Spanish. Call and say your language for other language support.
             </Text>
           </GlassCard>
 
           <GlassCard style={styles.card}>
-            <Text style={styles.attrLabel}>MAILING ADDRESS</Text>
-            <Text style={styles.attrBody}>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>MAILING ADDRESS</Text>
+            <Text style={[styles.attrBody, { color: theme.text }]}>
               453 West 7th Street{'\n'}San Pedro, CA 90731
             </Text>
           </GlassCard>
 
           <GlassCard style={styles.card}>
-            <Text style={styles.attrLabel}>EIN</Text>
-            <Text style={styles.attrMono}>95-3855705</Text>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>EIN</Text>
+            <Text style={[styles.attrMono, { color: theme.text }]}>95-3855705</Text>
           </GlassCard>
 
           <HRule style={styles.hRule} />
 
-          <Text style={styles.privacy}>
+          {/* Dark mode toggle */}
+          <GlassCard style={styles.card}>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>APPEARANCE</Text>
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleText}>
+                <Text style={[styles.toggleLabel, { color: theme.text }]}>Discreet dark mode</Text>
+                <Text style={[styles.toggleDesc, { color: theme.muted }]}>
+                  Warm dark theme. Use this to reduce screen visibility in public.
+                </Text>
+              </View>
+              <Switch
+                value={darkEnabled}
+                onValueChange={v => setOverride(v ? 'dark' : 'system')}
+                trackColor={{ false: theme.rule, true: theme.accent }}
+                thumbColor="#FFFFFF"
+                accessibilityLabel="Toggle discreet dark mode"
+              />
+            </View>
+          </GlassCard>
+
+          <HRule style={styles.hRule} />
+
+          <Text style={[styles.privacy, { color: theme.muted }]}>
             This app collects no personal information. All safety plan data and notes are stored only on your device, encrypted with device-level security. No account is required.
           </Text>
         </ScrollView>
@@ -94,14 +118,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '800',
     fontSize: 36,
-    color: Colors.inkPrimary,
     letterSpacing: -1.5,
     lineHeight: 42,
   },
   tagline: {
     fontFamily: 'Inter',
     fontSize: 14,
-    color: Colors.inkMuted,
     marginTop: 6,
     marginBottom: 8,
     lineHeight: 20,
@@ -112,25 +134,21 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   attrLabel: {
-    fontFamily: 'Inter',
-    fontWeight: '600',
+    fontFamily: 'JetBrainsMono-Regular',
     fontSize: 9,
     letterSpacing: 1.3,
     textTransform: 'uppercase',
-    color: Colors.inkMuted,
     marginBottom: 6,
   },
   attrValue: {
     fontFamily: 'Inter',
     fontWeight: '700',
     fontSize: 16,
-    color: Colors.inkPrimary,
     marginBottom: 6,
   },
   attrBody: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: Colors.inkPrimary,
     lineHeight: 20,
     marginBottom: 6,
   },
@@ -138,28 +156,41 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '500',
     fontSize: 13,
-    color: Colors.purpleAnchor,
     textDecorationLine: 'underline',
   },
   attrPhone: {
     fontFamily: 'Inter',
     fontWeight: '700',
     fontSize: 20,
-    color: Colors.purpleAnchor,
     letterSpacing: -0.5,
     marginBottom: 6,
     textDecorationLine: 'underline',
   },
   attrMono: {
-    fontFamily: 'Inter',
+    fontFamily: 'JetBrainsMono-Regular',
     fontSize: 15,
-    color: Colors.inkPrimary,
     letterSpacing: 0.5,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  toggleText: { flex: 1 },
+  toggleLabel: {
+    fontFamily: 'Inter',
+    fontWeight: '600',
+    fontSize: 15,
+    marginBottom: 3,
+  },
+  toggleDesc: {
+    fontFamily: 'Inter',
+    fontSize: 12,
+    lineHeight: 17,
   },
   privacy: {
     fontFamily: 'Inter',
     fontSize: 12,
-    color: Colors.inkMuted,
     lineHeight: 19,
     textAlign: 'center',
     paddingHorizontal: 8,

@@ -1,8 +1,10 @@
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as Notifications from 'expo-notifications';
 import {
   useFonts,
   JetBrainsMono_400Regular,
@@ -30,6 +32,19 @@ function ShakeWatcher() {
 function AppShell() {
   const { theme } = useTheme();
   const scrollY = useScrollOffset();
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener(response => {
+      const data = response.notification.request.content.data as Record<string, unknown>;
+      if (data?.screen === 'fake-call-incoming') {
+        router.replace({
+          pathname: '/(tabs)/tools/fake-call/incoming',
+          params: { callerName: String(data.callerName ?? 'Unknown') },
+        });
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>

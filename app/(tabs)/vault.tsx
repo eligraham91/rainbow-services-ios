@@ -43,6 +43,10 @@ import {
   authenticateAsync,
   isBiometricAvailable,
 } from '@utils/biometric';
+import { createMMKV } from 'react-native-mmkv';
+import { useTheme } from '@theme/ThemeContext';
+
+const flags = createMMKV({ id: 'sh-flags' });
 
 type AuthState = 'loading' | 'locked' | 'unlocked' | 'unavailable';
 
@@ -165,9 +169,11 @@ function AddNoteModal({
 
 export default function VaultScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [authState, setAuthState] = useState<AuthState>('loading');
   const [notes, setNotes] = useState<VaultItem[]>([]);
   const [plan, setPlan] = useState<SafetyPlanData | null>(null);
+  const [planSaved, setPlanSaved] = useState(false);
   const [showAddNote, setShowAddNote] = useState(false);
 
   const scrollY = useScrollOffset();
@@ -177,6 +183,7 @@ export default function VaultScreen() {
     try {
       setNotes(getVaultItems());
       setPlan(getSafetyPlan());
+      setPlanSaved(flags.getBoolean('sh_plan_saved') ?? false);
     } catch {
       // vault unavailable
     }
@@ -302,6 +309,16 @@ export default function VaultScreen() {
           <Text style={styles.headerTitle}>Private{'\n'}notes.</Text>
           <Text style={styles.headerSub}>Only visible on this device.</Text>
 
+          {planSaved && (
+            <AnimatedItem index={-1}>
+              <GlassCard style={[styles.card, styles.planBanner]}>
+                <Text style={[styles.planBannerText, { color: theme.accent }]}>
+                  Your safety plan is saved here.
+                </Text>
+              </GlassCard>
+            </AnimatedItem>
+          )}
+
           <AnimatedItem index={0}>
             <SectionLabel text="SAFETY PLAN" />
             <GlassCard style={styles.card}>
@@ -386,6 +403,8 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   card: { padding: 16, marginBottom: 12 },
+  planBanner: { marginBottom: 16 },
+  planBannerText: { fontFamily: 'InterTight-ExtraBold', fontSize: 15, fontWeight: '800' },
   hRule: { marginVertical: 20 },
   lockTitle: {
     fontFamily: 'Inter',

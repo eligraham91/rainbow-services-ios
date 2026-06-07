@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   StyleSheet,
-  Linking,
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,9 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { QuickExitButton } from '@components/QuickExitButton';
-
 import { GlassCard } from '@components/GlassCard';
-
 import {
   SectionLabel,
   HRule,
@@ -27,9 +24,26 @@ import {
   NextStepPanel,
 } from '@components/Primitives';
 import { PhoneIcon, ShieldIcon, AlertIcon } from '@components/Icons';
-import { Colors } from '@theme/colors';
+import { useTheme } from '@theme/ThemeContext';
+import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 
 const ENTRY_SPRING = { mass: 1, stiffness: 180, damping: 20 } as const;
+
+const NATIONAL_HOTLINE: CallContact = {
+  tag: '24/7 CRISIS LINE',
+  name: 'National DV Hotline',
+  number: '1-800-799-7233',
+  dial: '18007997233',
+  note: 'Free, confidential, 24/7. English and Spanish plus 200+ languages. Text START to 88788 if you cannot speak.',
+};
+
+const RS_HOTLINE: CallContact = {
+  tag: 'LOCAL CRISIS LINE',
+  name: 'Rainbow Services',
+  number: '310-547-9343',
+  dial: '3105479343',
+  note: '24/7. English and Spanish. Call and say your language for other language support.',
+};
 
 interface TriageOption {
   id: string;
@@ -37,7 +51,7 @@ interface TriageOption {
   step: string;
   title: string;
   body: string;
-  cta?: { label: string; tel: string };
+  cta?: { label: string; contact: CallContact };
 }
 
 const TRIAGE_OPTIONS: TriageOption[] = [
@@ -47,7 +61,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '1',
     title: 'Call a crisis hotline',
     body: 'A crisis advocate can help you find shelter availability near you right now. The National DV Hotline is available 24/7 and can connect you with local shelters.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
   {
     id: 'talk',
@@ -55,7 +69,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '2',
     title: 'You can call or text',
     body: 'The National DV Hotline connects you with trained advocates. You do not need to be in immediate danger to call. Text START to 88788 if you cannot talk out loud.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
   {
     id: 'legal',
@@ -63,7 +77,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '3',
     title: 'Free legal support is available',
     body: 'Many DV programs have attorneys and advocates who help with restraining orders, custody, immigration relief, and more. Call the National Hotline to be connected with legal services in your area.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
   {
     id: 'children',
@@ -71,7 +85,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '4',
     title: 'Children are welcome',
     body: 'DV shelters serve families. You can bring your children. Advocates can also help you with school enrollment, childcare, and custody documentation.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
   {
     id: 'pet',
@@ -79,7 +93,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '5',
     title: 'Pet-friendly options exist',
     body: 'Many shelters now accept pets, and others have partnerships with pet boarding programs so you do not have to choose. Ask when you call.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
   {
     id: 'other',
@@ -87,7 +101,7 @@ const TRIAGE_OPTIONS: TriageOption[] = [
     step: '6',
     title: 'Advocates are trained for this',
     body: 'Whatever is happening, crisis advocates have heard it before and will not judge your situation. You do not need to explain yourself to call.',
-    cta: { label: 'Call 1-800-799-7233', tel: '18007997233' },
+    cta: { label: 'Call 1-800-799-7233', contact: NATIONAL_HOTLINE },
   },
 ];
 
@@ -113,12 +127,14 @@ function AnimatedCard({
 
 export default function EmergencyScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
   const [selectedTriage, setSelectedTriage] = useState<string | null>(null);
+  const [activeContact, setActiveContact] = useState<CallContact | null>(null);
 
   const selected = TRIAGE_OPTIONS.find(o => o.id === selectedTriage);
 
   return (
-    <View style={styles.root}>
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <ScrollView
           style={styles.scroll}
@@ -126,16 +142,20 @@ export default function EmergencyScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Safety aside */}
-          <View style={styles.safetyAside}>
-            <AlertIcon size={18} color={Colors.safetyRed} />
-            <Text style={styles.safetyAsideText}>
+          <View style={[styles.safetyAside, { borderLeftColor: theme.danger, backgroundColor: theme.dark ? 'rgba(229,115,115,0.08)' : 'rgba(198,40,40,0.04)' }]}>
+            <AlertIcon size={18} color={theme.danger} />
+            <Text style={[styles.safetyAsideText, { color: theme.text }]}>
               If you are in immediate danger, call 911.
             </Text>
           </View>
 
           <Pressable
-            onPress={() => Linking.openURL('tel:911')}
-            style={({ pressed }) => [styles.call911Btn, pressed && styles.call911BtnPressed]}
+            onPress={() => setActiveContact({ name: '911', number: '911', dial: '911', tag: 'EMERGENCY', danger: true })}
+            style={({ pressed }) => [
+              styles.call911Btn,
+              { backgroundColor: theme.danger, shadowColor: theme.danger },
+              pressed && { opacity: 0.85 },
+            ]}
             accessibilityRole="button"
             accessibilityLabel="Call 911 now"
           >
@@ -149,57 +169,61 @@ export default function EmergencyScreen() {
             <SectionLabel text="24/7 CRISIS LINE" />
             <GlassCard style={styles.card}>
               <View style={styles.resourceRow}>
-                <View style={styles.iconWrap}>
-                  <PhoneIcon size={20} color={Colors.purpleAnchor} />
+                <View style={[styles.iconWrap, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.07)' }]}>
+                  <PhoneIcon size={20} color={theme.accent} />
                 </View>
-                <View style={styles.resourceBody}>
-                  <Text style={styles.resourceTitle}>National DV Hotline</Text>
-                  <Text style={styles.resourceBody2}>
+                <View style={styles.resourceBodyCol}>
+                  <Text style={[styles.resourceTitle, { color: theme.text }]}>National DV Hotline</Text>
+                  <Text style={[styles.resourceBody2, { color: theme.muted }]}>
                     Free, confidential, 24/7. English and Spanish plus 200+ languages with interpretation.
                   </Text>
                 </View>
               </View>
               <Pressable
-                onPress={() => Linking.openURL('tel:18007997233')}
-                style={styles.callBtn}
+                onPress={() => setActiveContact(NATIONAL_HOTLINE)}
+                style={[styles.callBtn, { backgroundColor: theme.accent }]}
                 accessibilityRole="button"
               >
-                <Text style={styles.callBtnText}>Call 1-800-799-7233</Text>
+                <Text style={styles.callBtnTextWhite}>Call 1-800-799-7233</Text>
               </Pressable>
               <View style={styles.altContact}>
-                <Text style={styles.altContactText}>
+                <Text style={[styles.altContactText, { color: theme.muted }]}>
                   Text only: text START to 88788
                 </Text>
-                <Text style={styles.altContactText}>
+                <Text style={[styles.altContactText, { color: theme.muted }]}>
                   Chat: thehotline.org
                 </Text>
               </View>
             </GlassCard>
           </AnimatedCard>
 
+          <Text style={[styles.caveat, { color: theme.faint }]}>
+            Calls and texts to hotlines are confidential. Mandatory reporting laws may require advocates to report certain situations.
+          </Text>
+
           {/* Local crisis line */}
           <AnimatedCard index={1}>
             <GlassCard style={styles.card}>
               <View style={styles.resourceRow}>
-                <View style={styles.iconWrap}>
-                  <PhoneIcon size={20} color={Colors.inkMuted} />
+                <View style={[styles.iconWrap, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.07)' }]}>
+                  <PhoneIcon size={20} color={theme.muted} />
                 </View>
-                <View style={styles.resourceBody}>
-                  <Text style={styles.resourceTitle}>
+                <View style={styles.resourceBodyCol}>
+                  <Text style={[styles.resourceTitle, { color: theme.text }]}>
                     Local Line (Los Angeles/San Pedro)
                   </Text>
-                  <Text style={styles.resourceBody2}>
+                  <Text style={[styles.resourceBody2, { color: theme.muted }]}>
                     Rainbow Services 24/7 crisis line. English and Spanish.
                     Other languages available.
                   </Text>
                 </View>
               </View>
               <Pressable
-                onPress={() => Linking.openURL('tel:3105479343')}
-                style={[styles.callBtn, styles.callBtnSecondary]}
+                onPress={() => setActiveContact(RS_HOTLINE)}
+                style={[styles.callBtn, styles.callBtnOutline, { borderColor: theme.rule }]}
                 accessibilityRole="button"
               >
-                <Text style={[styles.callBtnText, styles.callBtnTextSecondary]}>
+                <Text style={[styles.callBtnText, { color: theme.text }]}>
                   Call 310-547-9343
                 </Text>
               </Pressable>
@@ -229,16 +253,14 @@ export default function EmergencyScreen() {
             <AnimatedCard index={3}>
               <View style={styles.triageResult}>
                 <NextStepPanel number={selected.step} title={selected.title} accent>
-                  <Text style={styles.triageBody}>{selected.body}</Text>
+                  <Text style={[styles.triageBody, { color: theme.text }]}>{selected.body}</Text>
                   {selected.cta && (
                     <Pressable
-                      onPress={() =>
-                        Linking.openURL(`tel:${selected.cta!.tel}`)
-                      }
-                      style={styles.triageCta}
+                      onPress={() => setActiveContact(selected.cta!.contact)}
+                      style={[styles.triageCta, { backgroundColor: theme.accent }]}
                       accessibilityRole="button"
                     >
-                      <Text style={styles.triagedCtaText}>{selected.cta.label}</Text>
+                      <Text style={styles.callBtnTextWhite}>{selected.cta.label}</Text>
                     </Pressable>
                   )}
                 </NextStepPanel>
@@ -253,24 +275,24 @@ export default function EmergencyScreen() {
             <SectionLabel text="FIND LOCAL RESOURCES" />
             <GlassCard style={styles.card}>
               <View style={styles.resourceRow}>
-                <View style={styles.iconWrap}>
-                  <ShieldIcon size={20} color={Colors.purpleAnchor} />
+                <View style={[styles.iconWrap, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.07)' }]}>
+                  <ShieldIcon size={20} color={theme.accent} />
                 </View>
-                <View style={styles.resourceBody}>
-                  <Text style={styles.resourceTitle}>
+                <View style={styles.resourceBodyCol}>
+                  <Text style={[styles.resourceTitle, { color: theme.text }]}>
                     Programs and shelters near you
                   </Text>
-                  <Text style={styles.resourceBody2}>
+                  <Text style={[styles.resourceBody2, { color: theme.muted }]}>
                     Search our resource directory for DV shelters, legal aid, counseling, and housing support.
                   </Text>
                 </View>
               </View>
               <Pressable
                 onPress={() => router.push('/resources')}
-                style={[styles.callBtn, styles.callBtnSecondary]}
+                style={[styles.callBtn, styles.callBtnOutline, { borderColor: theme.rule }]}
                 accessibilityRole="button"
               >
-                <Text style={[styles.callBtnText, styles.callBtnTextSecondary]}>
+                <Text style={[styles.callBtnText, { color: theme.text }]}>
                   Browse Resources
                 </Text>
               </Pressable>
@@ -278,7 +300,9 @@ export default function EmergencyScreen() {
           </AnimatedCard>
         </ScrollView>
       </SafeAreaView>
+
       <QuickExitButton />
+      <CallSheet contact={activeContact} onClose={() => setActiveContact(null)} />
     </View>
   );
 }
@@ -298,135 +322,102 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
     borderLeftWidth: 3,
-    borderLeftColor: Colors.safetyRed,
     paddingLeft: 14,
     paddingVertical: 10,
     marginBottom: 16,
-    backgroundColor: 'rgba(198,40,40,0.04)',
     borderRadius: 4,
   },
   safetyAsideText: {
     fontFamily: 'Inter',
     fontSize: 14,
     fontWeight: '500',
-    color: Colors.inkPrimary,
     flex: 1,
     lineHeight: 20,
   },
   call911Btn: {
-    backgroundColor: Colors.safetyRed,
     borderRadius: 8,
     height: 58,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
-    shadowColor: Colors.safetyRed,
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.35,
     shadowRadius: 10,
     elevation: 4,
   },
-  call911BtnPressed: {
-    backgroundColor: '#A31E1E',
-  },
   call911Text: {
     color: '#fff',
+    fontFamily: 'InterTight-ExtraBold',
     fontSize: 18,
     fontWeight: '800',
     letterSpacing: 1.2,
   },
-  hRule: {
-    marginVertical: 20,
-  },
-  card: {
-    marginBottom: 12,
-    padding: 16,
-  },
-  resourceRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 12,
-  },
+  hRule: { marginVertical: 20 },
+  card: { marginBottom: 12, padding: 16 },
+  resourceRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   iconWrap: {
     width: 36,
     height: 36,
     borderRadius: 8,
-    backgroundColor: 'rgba(74,20,140,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  resourceBody: {
-    flex: 1,
-  },
+  resourceBodyCol: { flex: 1 },
   resourceTitle: {
     fontFamily: 'Inter',
     fontWeight: '600',
     fontSize: 15,
-    color: Colors.inkPrimary,
     marginBottom: 3,
     lineHeight: 20,
   },
   resourceBody2: {
     fontFamily: 'Inter',
     fontSize: 12,
-    color: Colors.inkMuted,
     lineHeight: 17,
   },
   callBtn: {
-    backgroundColor: Colors.purpleAnchor,
     borderRadius: 6,
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  callBtnSecondary: {
+  callBtnOutline: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: Colors.ruleLine,
   },
   callBtnText: {
+    fontFamily: 'Inter',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  callBtnTextWhite: {
     color: '#fff',
     fontFamily: 'Inter',
     fontWeight: '600',
     fontSize: 14,
   },
-  callBtnTextSecondary: {
-    color: Colors.inkPrimary,
+  altContact: { marginTop: 10, gap: 3 },
+  altContactText: { fontFamily: 'Inter', fontSize: 12 },
+  caveat: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 10,
+    lineHeight: 15,
+    letterSpacing: 0.3,
+    marginBottom: 16,
+    paddingHorizontal: 2,
   },
-  altContact: {
-    marginTop: 10,
-    gap: 3,
-  },
-  altContactText: {
-    fontFamily: 'Inter',
-    fontSize: 12,
-    color: Colors.inkMuted,
-  },
-  chipGrid: {
-    gap: 8,
-    marginBottom: 4,
-  },
-  triageResult: {
-    marginTop: 12,
-  },
+  chipGrid: { gap: 8, marginBottom: 4 },
+  triageResult: { marginTop: 12 },
   triageBody: {
     fontFamily: 'Inter',
     fontSize: 13,
-    color: Colors.inkPrimary,
     lineHeight: 19,
     marginBottom: 12,
   },
   triageCta: {
-    backgroundColor: Colors.purpleAnchor,
     borderRadius: 6,
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  triagedCtaText: {
-    color: '#fff',
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    fontSize: 13,
   },
 });

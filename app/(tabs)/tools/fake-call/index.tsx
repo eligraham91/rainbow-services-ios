@@ -74,7 +74,7 @@ export default function FakeCallSetupScreen() {
           content: {
             title: trimmed,
             body: 'Incoming call',
-            data: { screen: 'incoming', callerName: trimmed },
+            data: { screen: 'fake-call-incoming', callerName: trimmed },
           },
           trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: delay },
         });
