@@ -54,6 +54,14 @@ function LockIcon({ color }: { color: string }) {
   );
 }
 
+function PhoneIcon({ color }: { color: string }) {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Path d="M6.6 10.8A15.6 15.6 0 0013.2 17.4l2.2-2.2a1 1 0 011-.24 11.6 11.6 0 003.58.58 1 1 0 011 1V19a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.58 3.58a1 1 0 01-.24 1L6.6 10.8z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 const CATEGORIES = [
   {
     num: '01',
@@ -89,6 +97,13 @@ const CATEGORIES = [
     desc: 'Notes and your safety plan, encrypted on this device.',
     route: '/(tabs)/vault' as const,
     Icon: LockIcon,
+  },
+  {
+    num: '06',
+    label: 'Fake call',
+    desc: 'A convincing call screen to exit a tense or unsafe situation.',
+    route: '/(tabs)/tools/fake-call' as const,
+    Icon: PhoneIcon,
   },
 ] as const;
 

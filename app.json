@@ -58,7 +58,15 @@
           "faceIDPermission": "Unlock your private notes"
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#4A148C",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

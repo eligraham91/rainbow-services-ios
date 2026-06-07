@@ -24,6 +24,10 @@ export default function ToolsLayout() {
       <Stack.Screen name="learn/state-laws" />
       <Stack.Screen name="learn/dating" />
       <Stack.Screen name="learn/talk-to-friend" />
+      <Stack.Screen name="fake-call/index" />
+      <Stack.Screen name="fake-call/waiting" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="fake-call/incoming" options={{ gestureEnabled: false, presentation: 'fullScreenModal' }} />
+      <Stack.Screen name="fake-call/incall" options={{ gestureEnabled: false }} />
     </Stack>
   );
 }
