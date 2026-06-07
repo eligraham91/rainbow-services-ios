@@ -28,6 +28,8 @@ export default function ToolsLayout() {
       <Stack.Screen name="fake-call/waiting" options={{ gestureEnabled: false }} />
       <Stack.Screen name="fake-call/incoming" options={{ gestureEnabled: false, presentation: 'fullScreenModal' }} />
       <Stack.Screen name="fake-call/incall" options={{ gestureEnabled: false }} />
+      <Stack.Screen name="howtos/index" />
+      <Stack.Screen name="howtos/[category]" />
     </Stack>
   );
 }
