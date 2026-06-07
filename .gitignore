@@ -28,3 +28,4 @@ web-build/
 
 # TypeScript
 *.tsbuildinfo
+dist-check/
