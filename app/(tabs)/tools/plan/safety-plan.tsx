@@ -24,7 +24,7 @@ import { BackPill } from '@components/BackPill';
 import { QuickExitButton } from '@components/QuickExitButton';
 import { PrivacyCheck } from '@components/Primitives';
 import { DocumentIcon, ChecklistIcon } from '@components/Icons';
-import { Colors } from '@theme/colors';
+import { useTheme } from '@theme/ThemeContext';
 import {
   initVault,
   getSafetyPlan,
@@ -133,6 +133,7 @@ const STEPS: PlanStep[] = [
 ];
 
 function ProgressBar({ current, total }: { current: number; total: number }) {
+  const { theme } = useTheme();
   const progress = current / total;
   const width = useSharedValue(0);
   useEffect(() => {
@@ -142,8 +143,8 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
     width: `${width.value * 100}%` as unknown as number,
   }));
   return (
-    <View style={styles.progressTrack}>
-      <Animated.View style={[styles.progressFill, barStyle]} />
+    <View style={[styles.progressTrack, { backgroundColor: theme.rule }]}>
+      <Animated.View style={[styles.progressFill, barStyle, { backgroundColor: theme.accent }]} />
     </View>
   );
 }
@@ -161,6 +162,7 @@ function StepView({
   onNext: () => void;
   onSkip: () => void;
 }) {
+  const { theme } = useTheme();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(20);
 
@@ -176,39 +178,40 @@ function StepView({
 
   return (
     <Animated.View style={[styles.stepContainer, style]}>
-      <Text style={styles.eyebrow}>{step.eyebrow}</Text>
-      <Text style={styles.stepLabel}>{step.label}</Text>
-      <Text style={styles.stepPrompt}>{step.prompt}</Text>
+      <Text style={[styles.eyebrow, { color: theme.muted }]}>{step.eyebrow}</Text>
+      <Text style={[styles.stepLabel, { color: theme.text }]}>{step.label}</Text>
+      <Text style={[styles.stepPrompt, { color: theme.muted }]}>{step.prompt}</Text>
       <GlassCard style={styles.inputCard}>
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { color: theme.text }]}
           multiline
           placeholder={step.placeholder}
-          placeholderTextColor={Colors.inkMuted}
+          placeholderTextColor={theme.faint}
           value={value}
           onChangeText={onChange}
           autoFocus
           textAlignVertical="top"
         />
       </GlassCard>
-      <Pressable onPress={onNext} style={styles.nextBtn} accessibilityRole="button">
+      <Pressable onPress={onNext} style={[styles.nextBtn, { backgroundColor: theme.accent, shadowColor: theme.accent }]} accessibilityRole="button">
         <Text style={styles.nextBtnText}>Save and Continue</Text>
       </Pressable>
       <Pressable onPress={onSkip} style={styles.skipBtn} accessibilityRole="button">
-        <Text style={styles.skipBtnText}>Skip for now</Text>
+        <Text style={[styles.skipBtnText, { color: theme.muted }]}>Skip for now</Text>
       </Pressable>
     </Animated.View>
   );
 }
 
 function IntroView({ onBegin }: { onBegin: () => void }) {
+  const { theme } = useTheme();
   return (
     <View style={styles.introContainer}>
-      <View style={styles.iconWrap}>
-        <DocumentIcon size={40} color={Colors.purpleAnchor} />
+      <View style={[styles.iconWrap, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.06)' }]}>
+        <DocumentIcon size={40} color={theme.accent} />
       </View>
-      <Text style={styles.bigTitle}>{'Build your\nsafety plan.'}</Text>
-      <Text style={styles.sub}>
+      <Text style={[styles.bigTitle, { color: theme.text }]}>{'Build your\nsafety plan.'}</Text>
+      <Text style={[styles.sub, { color: theme.muted }]}>
         A safety plan is a practical, personalized guide to help you stay safer.
       </Text>
       <GlassCard style={styles.privacyCard}>
@@ -216,7 +219,7 @@ function IntroView({ onBegin }: { onBegin: () => void }) {
         <PrivacyCheck text="Encrypted with device-level security." />
         <PrivacyCheck text="Hidden when you use Quick Exit." isLast />
       </GlassCard>
-      <Pressable onPress={onBegin} style={styles.beginBtn} accessibilityRole="button">
+      <Pressable onPress={onBegin} style={[styles.beginBtn, { backgroundColor: theme.accent, shadowColor: theme.accent }]} accessibilityRole="button">
         <Text style={styles.beginBtnText}>Begin</Text>
       </Pressable>
     </View>
@@ -230,6 +233,7 @@ function CompleteView({
   plan: SafetyPlanData;
   onViewVault: () => void;
 }) {
+  const { theme } = useTheme();
   const filledCount = STEPS.filter(s => plan[s.section].trim().length > 0).length;
   const [exporting, setExporting] = useState(false);
 
@@ -252,11 +256,11 @@ function CompleteView({
 
   return (
     <View style={styles.introContainer}>
-      <View style={styles.iconWrap}>
-        <ChecklistIcon size={40} color={Colors.purpleAnchor} />
+      <View style={[styles.iconWrap, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.06)' }]}>
+        <ChecklistIcon size={40} color={theme.accent} />
       </View>
-      <Text style={styles.bigTitle}>{'Your plan\nis saved.'}</Text>
-      <Text style={styles.sub}>
+      <Text style={[styles.bigTitle, { color: theme.text }]}>{'Your plan\nis saved.'}</Text>
+      <Text style={[styles.sub, { color: theme.muted }]}>
         {filledCount} of 6 sections completed. You can update it any time.
       </Text>
       <GlassCard style={styles.summaryCard}>
@@ -264,28 +268,28 @@ function CompleteView({
           const filled = plan[s.section].trim().length > 0;
           return (
             <View key={s.section} style={styles.summaryRow}>
-              <Text style={[styles.summaryDot, filled && styles.summaryDotFilled]}>
+              <Text style={[styles.summaryDot, { color: filled ? theme.accent : theme.rule }]}>
                 {filled ? '●' : '○'}
               </Text>
-              <Text style={[styles.summaryLabel, !filled && styles.summaryLabelEmpty]}>
+              <Text style={[styles.summaryLabel, { color: filled ? theme.text : theme.muted }]}>
                 {s.label}
               </Text>
             </View>
           );
         })}
       </GlassCard>
-      <Pressable onPress={onViewVault} style={styles.beginBtn} accessibilityRole="button">
+      <Pressable onPress={onViewVault} style={[styles.beginBtn, { backgroundColor: theme.accent, shadowColor: theme.accent }]} accessibilityRole="button">
         <Text style={styles.beginBtnText}>View in Vault</Text>
       </Pressable>
       <Pressable
         onPress={handleExport}
-        style={styles.exportBtn}
+        style={[styles.exportBtn, { borderColor: theme.accent }]}
         disabled={exporting}
         accessibilityRole="button"
         accessibilityLabel="Export safety plan as PDF"
       >
-        <DocumentIcon size={15} color={exporting ? Colors.inkMuted : Colors.purpleAnchor} />
-        <Text style={[styles.exportBtnText, exporting && styles.exportBtnTextDisabled]}>
+        <DocumentIcon size={15} color={exporting ? theme.muted : theme.accent} />
+        <Text style={[styles.exportBtnText, { color: exporting ? theme.muted : theme.accent }]}>
           {exporting ? 'Preparing PDF...' : 'Export as PDF'}
         </Text>
       </Pressable>
@@ -398,25 +402,10 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 130,
-    flexGrow: 1,
-  },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 130, flexGrow: 1 },
   center: { alignItems: 'center', justifyContent: 'center' },
-  progressTrack: {
-    height: 3,
-    backgroundColor: Colors.ruleLine,
-    borderRadius: 2,
-    marginBottom: 28,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: 3,
-    backgroundColor: Colors.purpleAnchor,
-    borderRadius: 2,
-  },
+  progressTrack: { height: 3, borderRadius: 2, marginBottom: 28, overflow: 'hidden' },
+  progressFill: { height: 3, borderRadius: 2 },
   stepContainer: { flex: 1 },
   eyebrow: {
     fontFamily: 'Inter',
@@ -424,137 +413,46 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1.4,
     textTransform: 'uppercase',
-    color: Colors.inkMuted,
     marginBottom: 8,
   },
-  stepLabel: {
-    fontFamily: 'Inter',
-    fontWeight: '800',
-    fontSize: 28,
-    color: Colors.inkPrimary,
-    letterSpacing: -1,
-    lineHeight: 34,
-    marginBottom: 8,
-  },
-  stepPrompt: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkMuted,
-    lineHeight: 21,
-    marginBottom: 20,
-  },
-  inputCard: {
-    padding: 14,
-    marginBottom: 16,
-  },
-  textInput: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkPrimary,
-    lineHeight: 22,
-    minHeight: 120,
-  },
+  stepLabel: { fontFamily: 'Inter', fontWeight: '800', fontSize: 28, letterSpacing: -1, lineHeight: 34, marginBottom: 8 },
+  stepPrompt: { fontFamily: 'Inter', fontSize: 14, lineHeight: 21, marginBottom: 20 },
+  inputCard: { padding: 14, marginBottom: 16 },
+  textInput: { fontFamily: 'Inter', fontSize: 14, lineHeight: 22, minHeight: 120 },
   nextBtn: {
-    backgroundColor: Colors.purpleAnchor,
     borderRadius: 8,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
-    shadowColor: Colors.purpleAnchor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
-  nextBtnText: {
-    color: '#fff',
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  skipBtn: {
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  skipBtnText: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    color: Colors.inkMuted,
-    textDecorationLine: 'underline',
-  },
+  nextBtnText: { color: '#fff', fontFamily: 'Inter', fontWeight: '600', fontSize: 15 },
+  skipBtn: { height: 44, alignItems: 'center', justifyContent: 'center' },
+  skipBtnText: { fontFamily: 'Inter', fontSize: 13, textDecorationLine: 'underline' },
   introContainer: { flex: 1, paddingTop: 20 },
-  iconWrap: {
-    width: 64,
-    height: 64,
-    borderRadius: 16,
-    backgroundColor: 'rgba(74,20,140,0.06)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 20,
-  },
-  bigTitle: {
-    fontFamily: 'Inter',
-    fontWeight: '800',
-    fontSize: 36,
-    color: Colors.inkPrimary,
-    letterSpacing: -1.5,
-    lineHeight: 42,
-    marginBottom: 10,
-  },
-  sub: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkMuted,
-    lineHeight: 21,
-    marginBottom: 24,
-  },
-  privacyCard: {
-    padding: 14,
-    marginBottom: 24,
-  },
+  iconWrap: { width: 64, height: 64, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 20 },
+  bigTitle: { fontFamily: 'Inter', fontWeight: '800', fontSize: 36, letterSpacing: -1.5, lineHeight: 42, marginBottom: 10 },
+  sub: { fontFamily: 'Inter', fontSize: 14, lineHeight: 21, marginBottom: 24 },
+  privacyCard: { padding: 14, marginBottom: 24 },
   beginBtn: {
-    backgroundColor: Colors.purpleAnchor,
     borderRadius: 8,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.purpleAnchor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 3,
   },
-  beginBtnText: {
-    color: '#fff',
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    fontSize: 15,
-  },
-  summaryCard: {
-    padding: 14,
-    marginBottom: 24,
-    gap: 10,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingVertical: 3,
-  },
-  summaryDot: {
-    fontSize: 12,
-    color: Colors.ruleLine,
-    width: 14,
-  },
-  summaryDotFilled: { color: Colors.purpleAnchor },
-  summaryLabel: {
-    fontFamily: 'Inter',
-    fontSize: 13,
-    color: Colors.inkPrimary,
-  },
-  summaryLabelEmpty: { color: Colors.inkMuted },
+  beginBtnText: { color: '#fff', fontFamily: 'Inter', fontWeight: '600', fontSize: 15 },
+  summaryCard: { padding: 14, marginBottom: 24, gap: 10 },
+  summaryRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 3 },
+  summaryDot: { fontSize: 12, width: 14 },
+  summaryLabel: { fontFamily: 'Inter', fontSize: 13 },
   exportBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -564,15 +462,6 @@ const styles = StyleSheet.create({
     height: 44,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.purpleAnchor,
   },
-  exportBtnText: {
-    fontFamily: 'Inter',
-    fontWeight: '600',
-    fontSize: 14,
-    color: Colors.purpleAnchor,
-  },
-  exportBtnTextDisabled: {
-    color: Colors.inkMuted,
-  },
+  exportBtnText: { fontFamily: 'Inter', fontWeight: '600', fontSize: 14 },
 });

@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 
 export default function ToolsLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+    <Stack screenOptions={{ headerShown: false, animation: 'ios_from_right', gestureEnabled: true, contentStyle: { backgroundColor: 'transparent' } }}>
       <Stack.Screen name="index" />
       <Stack.Screen name="somatic/index" />
       <Stack.Screen name="somatic/breathe" />

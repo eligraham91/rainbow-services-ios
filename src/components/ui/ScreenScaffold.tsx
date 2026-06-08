@@ -14,6 +14,7 @@ import { BackPill } from '@components/BackPill';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useScrollOffset } from '@components/ScrollContext';
 
+
 interface ScreenScaffoldProps {
   children: ReactNode;
   eyebrow?: string;
@@ -56,7 +57,7 @@ export function ScreenScaffold({
   const { reduceMotion } = useTraumaInformedMotion();
   const scrollY = useScrollOffset();
 
-  const entering = reduceMotion ? undefined : FadeInDown.duration(300).delay(60);
+  const headerEntering = reduceMotion ? undefined : FadeInDown.duration(300).delay(60);
 
   // Reset scroll position when this screen unmounts so gradient returns to default
   useEffect(() => {
@@ -70,7 +71,7 @@ export function ScreenScaffold({
   });
 
   const header = (eyebrow || title || intro || showBack) ? (
-    <Animated.View entering={entering} style={styles.header}>
+    <Animated.View entering={headerEntering} style={styles.header}>
       {showBack && (
         <View style={styles.backRow}>
           <BackPill />

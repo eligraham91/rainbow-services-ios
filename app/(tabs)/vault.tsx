@@ -27,7 +27,6 @@ import { GlassCard } from '@components/GlassCard';
 import { SectionLabel, HRule } from '@components/Primitives';
 import { LockIcon } from '@components/Icons';
 import { VaultEntry } from '@components/VaultEntry';
-import { Colors } from '@theme/colors';
 import {
   initVault,
   getVaultItems,
@@ -76,22 +75,23 @@ function AnimatedItem({ index, children }: { index: number; children: React.Reac
 }
 
 function PlanSummary({ plan, onEdit }: { plan: SafetyPlanData; onEdit: () => void }) {
+  const { theme } = useTheme();
   const filled = PLAN_SECTIONS.filter(s => plan[s.key].trim().length > 0);
 
   return (
     <>
       {filled.length === 0 ? (
-        <Text style={styles.emptyText}>No safety plan saved yet.</Text>
+        <Text style={[styles.emptyText, { color: theme.muted }]}>No safety plan saved yet.</Text>
       ) : (
         <View style={styles.planRows}>
           {PLAN_SECTIONS.map(s => {
             const has = plan[s.key].trim().length > 0;
             return (
               <View key={s.key} style={styles.planRow}>
-                <Text style={[styles.planDot, has && styles.planDotFilled]}>
+                <Text style={[styles.planDot, { color: has ? theme.accent : theme.rule }]}>
                   {has ? '●' : '○'}
                 </Text>
-                <Text style={[styles.planLabel, !has && styles.planLabelEmpty]}>
+                <Text style={[styles.planLabel, { color: has ? theme.text : theme.muted }]}>
                   {s.label}
                 </Text>
               </View>
@@ -99,8 +99,8 @@ function PlanSummary({ plan, onEdit }: { plan: SafetyPlanData; onEdit: () => voi
           })}
         </View>
       )}
-      <Pressable onPress={onEdit} style={styles.editPlanBtn} accessibilityRole="button">
-        <Text style={styles.editPlanBtnText}>
+      <Pressable onPress={onEdit} style={[styles.editPlanBtn, { borderColor: theme.rule }]} accessibilityRole="button">
+        <Text style={[styles.editPlanBtnText, { color: theme.text }]}>
           {filled.length > 0 ? 'Edit Safety Plan' : 'Build Safety Plan'}
         </Text>
       </Pressable>
@@ -117,6 +117,7 @@ function AddNoteModal({
   onClose: () => void;
   onSave: (title: string, body: string) => void;
 }) {
+  const { theme } = useTheme();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
 
@@ -131,20 +132,20 @@ function AddNoteModal({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
-          <Text style={styles.modalTitle}>Add note</Text>
+        <View style={[styles.modalSheet, { backgroundColor: theme.surface }]}>
+          <Text style={[styles.modalTitle, { color: theme.text }]}>Add note</Text>
           <TextInput
-            style={styles.modalInput}
+            style={[styles.modalInput, { color: theme.text, borderColor: theme.rule, backgroundColor: theme.background }]}
             placeholder="Title"
-            placeholderTextColor={Colors.inkMuted}
+            placeholderTextColor={theme.faint}
             value={title}
             onChangeText={setTitle}
             autoFocus
           />
           <TextInput
-            style={[styles.modalInput, styles.modalBodyInput]}
+            style={[styles.modalInput, styles.modalBodyInput, { color: theme.text, borderColor: theme.rule, backgroundColor: theme.background }]}
             placeholder="Note (optional)"
-            placeholderTextColor={Colors.inkMuted}
+            placeholderTextColor={theme.faint}
             value={body}
             onChangeText={setBody}
             multiline
@@ -152,14 +153,14 @@ function AddNoteModal({
           />
           <Pressable
             onPress={handleSave}
-            style={[styles.modalBtn, !title.trim() && styles.modalBtnDisabled]}
+            style={[styles.modalBtn, { backgroundColor: title.trim() ? theme.accent : theme.rule }]}
             disabled={!title.trim()}
             accessibilityRole="button"
           >
             <Text style={styles.modalBtnText}>Save</Text>
           </Pressable>
           <Pressable onPress={onClose} style={styles.modalCancel} accessibilityRole="button">
-            <Text style={styles.modalCancelText}>Cancel</Text>
+            <Text style={[styles.modalCancelText, { color: theme.muted }]}>Cancel</Text>
           </Pressable>
         </View>
       </View>
@@ -278,17 +279,16 @@ export default function VaultScreen() {
 
   if (authState === 'locked') {
     return (
-      <View style={styles.root}>
-        
+      <View style={[styles.root, { backgroundColor: theme.background }]}>
         <SafeAreaView style={[styles.safe, styles.center]} edges={['top']}>
-          <LockIcon size={48} color={Colors.purpleAnchor} />
-          <Text style={styles.lockTitle}>{'Your private\nnotes.'}</Text>
-          <Text style={styles.lockSub}>Protected by Face ID or Touch ID.</Text>
-          <Pressable onPress={tryAuth} style={styles.unlockBtn} accessibilityRole="button">
+          <LockIcon size={48} color={theme.accent} />
+          <Text style={[styles.lockTitle, { color: theme.text }]}>{'Your private\nnotes.'}</Text>
+          <Text style={[styles.lockSub, { color: theme.muted }]}>Protected by Face ID or Touch ID.</Text>
+          <Pressable onPress={tryAuth} style={[styles.unlockBtn, { backgroundColor: theme.accent, shadowColor: theme.accent }]} accessibilityRole="button">
             <Text style={styles.unlockBtnText}>Unlock</Text>
           </Pressable>
           <Pressable onPress={() => router.back()} style={styles.backLink} accessibilityRole="button">
-            <Text style={styles.backLinkText}>Go back</Text>
+            <Text style={[styles.backLinkText, { color: theme.muted }]}>Go back</Text>
           </Pressable>
         </SafeAreaView>
       </View>
@@ -296,8 +296,7 @@ export default function VaultScreen() {
   }
 
   return (
-    <View style={styles.root}>
-      
+    <View style={[styles.root, { backgroundColor: theme.background }]}>
       <SafeAreaView style={styles.safe} edges={['top']}>
         <Animated.ScrollView
           style={styles.scroll}
@@ -306,8 +305,8 @@ export default function VaultScreen() {
           onScroll={scrollHandler}
           scrollEventThrottle={16}
         >
-          <Text style={styles.headerTitle}>Private{'\n'}notes.</Text>
-          <Text style={styles.headerSub}>Only visible on this device.</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Private{'\n'}notes.</Text>
+          <Text style={[styles.headerSub, { color: theme.muted }]}>Only visible on this device.</Text>
 
           {planSaved && (
             <AnimatedItem index={-1}>
@@ -334,7 +333,7 @@ export default function VaultScreen() {
 
           {notes.length === 0 && (
             <AnimatedItem index={2}>
-              <Text style={styles.emptyText}>No notes yet.</Text>
+              <Text style={[styles.emptyText, { color: theme.muted }]}>No notes yet.</Text>
             </AnimatedItem>
           )}
 
@@ -350,10 +349,10 @@ export default function VaultScreen() {
           <AnimatedItem index={notes.length + 2}>
             <Pressable
               onPress={() => setShowAddNote(true)}
-              style={styles.addNoteBtn}
+              style={[styles.addNoteBtn, { borderColor: theme.accent }]}
               accessibilityRole="button"
             >
-              <Text style={styles.addNoteBtnText}>+ Add Note</Text>
+              <Text style={[styles.addNoteBtnText, { color: theme.accent }]}>+ Add Note</Text>
             </Pressable>
           </AnimatedItem>
 
@@ -361,7 +360,7 @@ export default function VaultScreen() {
 
           <AnimatedItem index={notes.length + 3}>
             <Pressable onPress={handleClearAll} style={styles.clearBtn} accessibilityRole="button">
-              <Text style={styles.clearBtnText}>Remove all saved data from this device</Text>
+              <Text style={[styles.clearBtnText, { color: theme.muted }]}>Remove all saved data from this device</Text>
             </Pressable>
           </AnimatedItem>
         </Animated.ScrollView>
@@ -372,7 +371,6 @@ export default function VaultScreen() {
         onClose={() => setShowAddNote(false)}
         onSave={handleAddNote}
       />
-      { /* Quick Exit from (tabs)/_layout.tsx */ }
     </View>
   );
 }
@@ -381,27 +379,10 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   safe: { flex: 1 },
   scroll: { flex: 1 },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 130,
-  },
+  scrollContent: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 130 },
   center: { alignItems: 'center', justifyContent: 'center' },
-  headerTitle: {
-    fontFamily: 'Inter',
-    fontWeight: '800',
-    fontSize: 38,
-    color: Colors.inkPrimary,
-    letterSpacing: -1.5,
-    lineHeight: 44,
-  },
-  headerSub: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkMuted,
-    marginTop: 4,
-    marginBottom: 24,
-  },
+  headerTitle: { fontFamily: 'Inter', fontWeight: '800', fontSize: 38, letterSpacing: -1.5, lineHeight: 44 },
+  headerSub: { fontFamily: 'Inter', fontSize: 14, marginTop: 4, marginBottom: 24 },
   card: { padding: 16, marginBottom: 12 },
   planBanner: { marginBottom: 16 },
   planBannerText: { fontFamily: 'InterTight-ExtraBold', fontSize: 15, fontWeight: '800' },
@@ -410,29 +391,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '800',
     fontSize: 34,
-    color: Colors.inkPrimary,
     letterSpacing: -1.3,
     lineHeight: 40,
     textAlign: 'center',
     marginTop: 20,
     marginBottom: 8,
   },
-  lockSub: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkMuted,
-    textAlign: 'center',
-    marginBottom: 32,
-    paddingHorizontal: 32,
-  },
+  lockSub: { fontFamily: 'Inter', fontSize: 14, textAlign: 'center', marginBottom: 32, paddingHorizontal: 32 },
   unlockBtn: {
-    backgroundColor: Colors.purpleAnchor,
     borderRadius: 8,
     paddingHorizontal: 48,
     height: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: Colors.purpleAnchor,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -440,66 +411,25 @@ const styles = StyleSheet.create({
   },
   unlockBtnText: { color: '#fff', fontFamily: 'Inter', fontWeight: '600', fontSize: 16 },
   backLink: { marginTop: 16, padding: 8 },
-  backLinkText: { fontFamily: 'Inter', fontSize: 13, color: Colors.inkMuted, textDecorationLine: 'underline' },
+  backLinkText: { fontFamily: 'Inter', fontSize: 13, textDecorationLine: 'underline' },
   planRows: { gap: 8, marginBottom: 14 },
   planRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  planDot: { fontSize: 12, color: Colors.ruleLine, width: 14 },
-  planDotFilled: { color: Colors.purpleAnchor },
-  planLabel: { fontFamily: 'Inter', fontSize: 13, color: Colors.inkPrimary },
-  planLabelEmpty: { color: Colors.inkMuted },
-  editPlanBtn: {
-    borderWidth: 1,
-    borderColor: Colors.ruleLine,
-    borderRadius: 6,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editPlanBtnText: { fontFamily: 'Inter', fontWeight: '500', fontSize: 13, color: Colors.inkPrimary },
-  emptyText: { fontFamily: 'Inter', fontSize: 13, color: Colors.inkMuted, marginBottom: 12 },
-  addNoteBtn: {
-    borderWidth: 1,
-    borderColor: Colors.purpleAnchor,
-    borderRadius: 6,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 4,
-  },
-  addNoteBtnText: { fontFamily: 'Inter', fontWeight: '600', fontSize: 14, color: Colors.purpleAnchor },
+  planDot: { fontSize: 12, width: 14 },
+  planLabel: { fontFamily: 'Inter', fontSize: 13 },
+  editPlanBtn: { borderWidth: 1, borderRadius: 6, height: 40, alignItems: 'center', justifyContent: 'center' },
+  editPlanBtnText: { fontFamily: 'Inter', fontWeight: '500', fontSize: 13 },
+  emptyText: { fontFamily: 'Inter', fontSize: 13, marginBottom: 12 },
+  addNoteBtn: { borderWidth: 1, borderRadius: 6, height: 44, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+  addNoteBtnText: { fontFamily: 'Inter', fontWeight: '600', fontSize: 14 },
   clearBtn: { height: 44, alignItems: 'center', justifyContent: 'center' },
-  clearBtnText: { fontFamily: 'Inter', fontSize: 12, color: Colors.inkMuted, textDecorationLine: 'underline' },
+  clearBtnText: { fontFamily: 'Inter', fontSize: 12, textDecorationLine: 'underline' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalSheet: {
-    backgroundColor: Colors.creamBase,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 24,
-    paddingBottom: 40,
-  },
-  modalTitle: { fontFamily: 'Inter', fontWeight: '700', fontSize: 20, color: Colors.inkPrimary, marginBottom: 16 },
-  modalInput: {
-    fontFamily: 'Inter',
-    fontSize: 14,
-    color: Colors.inkPrimary,
-    borderWidth: 1,
-    borderColor: Colors.ruleLine,
-    borderRadius: 6,
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: Colors.creamCard,
-  },
+  modalSheet: { borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 },
+  modalTitle: { fontFamily: 'Inter', fontWeight: '700', fontSize: 20, marginBottom: 16 },
+  modalInput: { fontFamily: 'Inter', fontSize: 14, borderWidth: 1, borderRadius: 6, padding: 12, marginBottom: 12 },
   modalBodyInput: { minHeight: 80, textAlignVertical: 'top' },
-  modalBtn: {
-    backgroundColor: Colors.purpleAnchor,
-    borderRadius: 8,
-    height: 50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 10,
-  },
-  modalBtnDisabled: { backgroundColor: Colors.ruleLine },
+  modalBtn: { borderRadius: 8, height: 50, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   modalBtnText: { color: '#fff', fontFamily: 'Inter', fontWeight: '600', fontSize: 15 },
   modalCancel: { height: 44, alignItems: 'center', justifyContent: 'center' },
-  modalCancelText: { fontFamily: 'Inter', fontSize: 14, color: Colors.inkMuted },
+  modalCancelText: { fontFamily: 'Inter', fontSize: 14 },
 });
