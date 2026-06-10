@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Path, Circle, Rect } from 'react-native-svg';
 import { ScreenScaffold } from '@components/ui/ScreenScaffold';
 import { GlassCard } from '@components/GlassCard';
+import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { HOWTO_CATEGORIES } from '@data/howtos';
@@ -63,13 +64,11 @@ export default function HowTosHubScreen() {
               key={cat.id}
               entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(i * 60 + 60)}
             >
-              <Pressable
+              <PressableScale
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                   router.push({ pathname: '/(tabs)/tools/howtos/[category]', params: { category: cat.id } });
                 }}
-                style={({ pressed }) => [pressed && { opacity: 0.85, transform: [{ scale: 0.98 }] }]}
-                accessibilityRole="button"
               >
                 <GlassCard style={styles.card}>
                   <View style={[styles.iconBox, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.07)' }]}>
@@ -84,7 +83,7 @@ export default function HowTosHubScreen() {
                     <Text style={[styles.countLabel, { color: theme.faint }]}>how-tos</Text>
                   </View>
                 </GlassCard>
-              </Pressable>
+              </PressableScale>
             </Animated.View>
           );
         })}

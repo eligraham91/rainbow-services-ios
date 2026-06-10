@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { Typography } from '@theme/typography';
+import { useTheme } from '@theme/ThemeContext';
 
 interface EditorialHeaderProps {
   title: string;
@@ -8,13 +9,14 @@ interface EditorialHeaderProps {
 }
 
 export function EditorialHeader({ title, subtitle }: EditorialHeaderProps) {
+  const { theme } = useTheme();
   return (
     <View style={styles.container}>
-      <Text adjustsFontSizeToFit numberOfLines={2} style={Typography.h1}>
+      <Text adjustsFontSizeToFit numberOfLines={2} style={[Typography.h1, { color: theme.text }]}>
         {title}
       </Text>
       {subtitle && (
-        <Text style={[Typography.cardBody, styles.subtitle]}>{subtitle}</Text>
+        <Text style={[Typography.cardBody, styles.subtitle, { color: theme.muted }]}>{subtitle}</Text>
       )}
     </View>
   );
@@ -27,6 +29,5 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: 12,
-    color: 'rgba(26, 17, 36, 0.6)',
   },
 });

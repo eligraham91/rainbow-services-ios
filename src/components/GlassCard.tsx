@@ -15,7 +15,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useTheme } from '@theme/ThemeContext';
-import { C } from '@theme/colors';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -56,8 +55,9 @@ export function GlassCard({
   }));
 
   if (Platform.OS === 'android') {
+    const androidBg = theme.dark ? 'rgba(55,51,31,0.9)' : 'rgba(237,228,206,0.9)';
     return (
-      <Animated.View style={[styles.card, styles.androidFallback, animatedBorderStyle, style]}>
+      <Animated.View style={[styles.card, { backgroundColor: androidBg }, animatedBorderStyle, style]}>
         {children}
       </Animated.View>
     );
@@ -83,9 +83,6 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
-  },
-  androidFallback: {
-    backgroundColor: `${C.creamCard}E6`, // ~90% opacity cream card
   },
   content: {
     // Sits above the BlurView (which is absolute-filled)

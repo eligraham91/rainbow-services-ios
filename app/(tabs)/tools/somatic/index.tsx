@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Circle, Path, Ellipse } from 'react-native-svg';
 import { ScreenScaffold } from '@components/ui/ScreenScaffold';
 import { GlassCard } from '@components/GlassCard';
+import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 
@@ -79,10 +80,8 @@ export default function SomaticHubScreen() {
             key={item.route}
             entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(i * 65 + 60)}
           >
-            <Pressable
+            <PressableScale
               onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); router.push(item.route); }}
-              style={({ pressed }) => [pressed && { opacity: 0.82, transform: [{ scale: 0.98 }] }]}
-              accessibilityRole="button"
             >
               <GlassCard style={styles.card}>
                 <Text style={[styles.num, { color: theme.faint }]}>{item.num}</Text>
@@ -93,7 +92,7 @@ export default function SomaticHubScreen() {
                 </View>
                 <Text style={[styles.sub, { color: theme.muted }]}>{item.sub}</Text>
               </GlassCard>
-            </Pressable>
+            </PressableScale>
           </Animated.View>
         ))}
       </View>

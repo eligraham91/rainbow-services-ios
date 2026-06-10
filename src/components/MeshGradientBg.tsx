@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, type ViewStyle, type StyleProp } from 'react-native';
 import { type SharedValue } from 'react-native-reanimated';
-import { C } from '@theme/colors';
+import { LightTheme, DarkTheme } from '@theme/colors';
 
 let SkiaMeshLayer: React.ComponentType<{
   style?: StyleProp<ViewStyle>;
@@ -30,8 +30,9 @@ interface MeshGradientBgProps {
 }
 
 export function MeshGradientBg({ style, dark, scrollY }: MeshGradientBgProps) {
+  const base = dark ? DarkTheme.background : LightTheme.background;
   return (
-    <View style={[styles.container, style]}>
+    <View style={[styles.container, { backgroundColor: base }, style]}>
       {SkiaMeshLayer ? (
         <SkiaMeshLayer
           style={StyleSheet.absoluteFill}
@@ -46,6 +47,5 @@ export function MeshGradientBg({ style, dark, scrollY }: MeshGradientBgProps) {
 const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: C.creamBase,
   },
 });

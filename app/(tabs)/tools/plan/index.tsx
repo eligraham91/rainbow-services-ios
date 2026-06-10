@@ -1,10 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ScreenScaffold } from '@components/ui/ScreenScaffold';
 import { GlassCard } from '@components/GlassCard';
+import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 
@@ -53,14 +54,12 @@ export default function PlanHubScreen() {
             key={item.route}
             entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(i * 65 + 60)}
           >
-            <Pressable
+            <PressableScale
               onPress={() => {
                 if ((item as { coming?: boolean }).coming) return;
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 router.push(item.route);
               }}
-              style={({ pressed }) => [pressed && { opacity: 0.82, transform: [{ scale: 0.98 }] }]}
-              accessibilityRole="button"
               disabled={(item as { coming?: boolean }).coming}
             >
               <GlassCard style={[styles.card, (item as { coming?: boolean }).coming && styles.cardMuted]}>
@@ -75,7 +74,7 @@ export default function PlanHubScreen() {
                   <Text style={[styles.arrow, { color: theme.accent }]}>→</Text>
                 </View>
               </GlassCard>
-            </Pressable>
+            </PressableScale>
           </Animated.View>
         ))}
       </View>

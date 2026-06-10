@@ -6,6 +6,7 @@ import Animated, { FadeInDown, useAnimatedScrollHandler } from 'react-native-rea
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassCard } from '@components/GlassCard';
 import { SwipeToCall } from '@components/ui/SwipeToCall';
+import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useScrollOffset } from '@components/ScrollContext';
@@ -16,7 +17,7 @@ interface DoorItem {
   title: string;
   desc: string;
   route: string;
-  accentColor?: string;
+  danger?: boolean;
 }
 
 const DOORS: DoorItem[] = [
@@ -26,7 +27,7 @@ const DOORS: DoorItem[] = [
     title: 'I need\nhelp now',
     desc: 'Hotlines, and what to do in the next five minutes.',
     route: '/emergency',
-    accentColor: '#C62828',
+    danger: true,
   },
   {
     num: '02',
@@ -51,18 +52,17 @@ function Door({ item, index }: { item: DoorItem; index: number }) {
 
   return (
     <Animated.View entering={entering}>
-      <Pressable
+      <PressableScale
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           router.push(item.route as never);
         }}
-        style={({ pressed }) => [pressed && { opacity: 0.88, transform: [{ scale: 0.98 }] }]}
-        accessibilityRole="button"
+        scaleTo={0.975}
       >
         <GlassCard style={styles.door}>
           {/* Left accent bar */}
-          {item.accentColor && (
-            <View style={[styles.doorAccent, { backgroundColor: item.accentColor }]} />
+          {item.danger && (
+            <View style={[styles.doorAccent, { backgroundColor: theme.danger }]} />
           )}
           <View style={styles.doorContent}>
             <Text style={[styles.doorNum, { color: theme.faint }]}>
@@ -73,7 +73,7 @@ function Door({ item, index }: { item: DoorItem; index: number }) {
           </View>
           <Text style={[styles.doorArrow, { color: theme.accent }]}>→</Text>
         </GlassCard>
-      </Pressable>
+      </PressableScale>
     </Animated.View>
   );
 }

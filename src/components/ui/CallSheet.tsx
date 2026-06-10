@@ -49,7 +49,7 @@ export function CallSheet({ contact, onClose }: CallSheetProps) {
 
   if (!contact) return null;
 
-  const callColor = contact.danger ? '#C62828' : theme.accent;
+  const callColor = contact.danger ? theme.danger : theme.accent;
 
   function handleCall() {
     Linking.openURL(`tel:${contact!.dial}`);

@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Path, Circle } from 'react-native-svg';
 import { ScreenScaffold } from '@components/ui/ScreenScaffold';
 import { GlassCard } from '@components/GlassCard';
+import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 
@@ -129,13 +130,11 @@ function CategoryCard({ item, index }: { item: typeof CATEGORIES[number]; index:
 
   return (
     <Animated.View entering={entering}>
-      <Pressable
+      <PressableScale
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
           router.push(item.route);
         }}
-        style={({ pressed }) => [pressed && { opacity: 0.85, transform: [{ scale: 0.97 }] }]}
-        accessibilityRole="button"
       >
         <GlassCard style={styles.card}>
           {/* Icon box */}
@@ -149,7 +148,7 @@ function CategoryCard({ item, index }: { item: typeof CATEGORIES[number]; index:
           </View>
           <Text style={[styles.arrow, { color: theme.accent }]}>→</Text>
         </GlassCard>
-      </Pressable>
+      </PressableScale>
     </Animated.View>
   );
 }

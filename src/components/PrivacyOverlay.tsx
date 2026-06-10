@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { AppState, View, Text, StyleSheet } from 'react-native';
-import { Colors } from '@theme/colors';
+import { useTheme } from '@theme/ThemeContext';
 
 export function PrivacyOverlay() {
+  const { theme } = useTheme();
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -18,8 +19,8 @@ export function PrivacyOverlay() {
   if (!hidden) return null;
 
   return (
-    <View style={styles.overlay}>
-      <Text style={styles.wordmark}>Start Here</Text>
+    <View style={[styles.overlay, { backgroundColor: theme.background }]}>
+      <Text style={[styles.wordmark, { color: theme.muted }]}>Start Here</Text>
     </View>
   );
 }
@@ -27,7 +28,6 @@ export function PrivacyOverlay() {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.creamBase,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 9999,
@@ -35,7 +35,6 @@ const styles = StyleSheet.create({
   wordmark: {
     fontSize: 24,
     fontWeight: '700',
-    color: Colors.inkMuted,
     letterSpacing: -0.5,
   },
 });
