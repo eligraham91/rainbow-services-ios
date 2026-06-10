@@ -12,15 +12,26 @@ import * as Haptics from 'expo-haptics';
 // | breathePulse   | "breathe"   | somatic timing cues                  |
 // | complete       | "complete"  | wizard finish, section done          |
 
+// Quiet Mode (EXPERIENCE-2026.md §5.5): the Still position turns off all
+// haptics except safety warnings. ThemeProvider keeps this flag in sync.
+let _enabled = true;
+
+export function setHapticsEnabled(enabled: boolean) {
+  _enabled = enabled;
+}
+
 export function tick() {
+  if (!_enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 export function tap() {
+  if (!_enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 }
 
 export function thunk() {
+  if (!_enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
 }
 
@@ -30,6 +41,7 @@ export function warn() {
 
 // Soft double-pulse for somatic timing cues.
 export function breathePulse() {
+  if (!_enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   setTimeout(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -39,6 +51,7 @@ export function breathePulse() {
 // Rising triplet — the app's completion signature. Three Light impacts
 // at 0ms / 90ms / 200ms.
 export function complete() {
+  if (!_enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   setTimeout(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});

@@ -13,9 +13,15 @@ import { QuickExitButton } from '@components/QuickExitButton';
 import { GlassCard } from '@components/GlassCard';
 import { HRule } from '@components/Primitives';
 import { CallSheet, type CallContact } from '@components/ui/CallSheet';
-import { useTheme } from '@theme/ThemeContext';
+import { useTheme, type QuietMode } from '@theme/ThemeContext';
 import { ACCENT_CHOICES } from '@theme/colors';
 import { tick } from '@utils/haptics';
+
+const QUIET_OPTIONS: { id: QuietMode; label: string; desc: string }[] = [
+  { id: 'full', label: 'Full', desc: 'All motion and touch feedback.' },
+  { id: 'soft', label: 'Soft', desc: 'Gentle motion, touch feedback on.' },
+  { id: 'still', label: 'Still', desc: 'No motion. Touch feedback off, except safety warnings.' },
+];
 
 const RS_HOTLINE: CallContact = {
   tag: 'CRISIS HOTLINE · 24/7',
@@ -26,7 +32,7 @@ const RS_HOTLINE: CallContact = {
 };
 
 export default function AboutScreen() {
-  const { theme, override, setOverride, accentId, setAccentId } = useTheme();
+  const { theme, override, setOverride, accentId, setAccentId, quiet, setQuiet } = useTheme();
   const [call, setCall] = useState<CallContact | null>(null);
   const darkEnabled = override === 'dark';
 
@@ -104,6 +110,48 @@ export default function AboutScreen() {
                 accessibilityLabel="Toggle discreet dark mode"
               />
             </View>
+          </GlassCard>
+
+          {/* Quiet Mode dial */}
+          <GlassCard style={styles.card}>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>QUIET MODE</Text>
+            <Text style={[styles.toggleDesc, { color: theme.muted, marginBottom: 12 }]}>
+              Choose how much the app moves and responds to touch.
+            </Text>
+            <View style={styles.quietRow}>
+              {QUIET_OPTIONS.map(opt => {
+                const selected = quiet === opt.id;
+                return (
+                  <Pressable
+                    key={opt.id}
+                    onPress={() => {
+                      setQuiet(opt.id);
+                      if (opt.id !== 'still') tick();
+                    }}
+                    style={[
+                      styles.quietPill,
+                      { borderColor: theme.rule },
+                      selected && { backgroundColor: theme.accent, borderColor: theme.accent },
+                    ]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${opt.label}. ${opt.desc}`}
+                  >
+                    <Text
+                      style={[
+                        styles.quietPillLabel,
+                        { color: selected ? '#FFFFFF' : theme.text },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text style={[styles.toggleDesc, { color: theme.muted, marginTop: 10 }]}>
+              {QUIET_OPTIONS.find(o => o.id === quiet)?.desc}
+            </Text>
           </GlassCard>
 
           {/* Accent color picker */}
@@ -232,6 +280,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     lineHeight: 17,
+  },
+  quietRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  quietPill: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderRadius: 20,
+    paddingVertical: 9,
+    alignItems: 'center',
+  },
+  quietPillLabel: {
+    fontFamily: 'Inter',
+    fontWeight: '600',
+    fontSize: 14,
   },
   swatchRow: {
     flexDirection: 'row',
