@@ -50,7 +50,7 @@ Twelve barely-perceptible palette biases, one per month, applied as a 4–6% hue
 
 A curated row of six accent hues in the About screen (the current violet, a deep teal, an ember, a forest, a slate blue, a plum). Selection re-themes `theme.accent` and the mesh's primary blob across the whole app instantly. Stored in MMKV next to the theme flag.
 
-Why curated and not a color wheel: every hue ships pre-checked for WCAG AA contrast in both themes, and the danger red stays reserved (a user must never be able to make safety messaging blend in). Customization is also quiet identity. The app becomes *theirs*, which deepens the sense that the data inside it is theirs too.
+Why curated and not a color wheel: every hue ships pre-checked for WCAG AA contrast in both themes, and the danger red stays reserved (a user must never be able to make safety messaging blend in). Customization is also quiet identity. The app becomes theirs, which deepens the sense that the data inside it is theirs too.
 
 ### 1.5 Gradient Weather (long-horizon idea)
 
@@ -64,9 +64,19 @@ The app has spring entrances and a morphing tab pill. These concepts complete th
 
 ### 2.1 Shared-Element Card Transitions
 
-When a tools card is tapped, the card itself should become the next screen's header: the GlassCard lifts (scale 1.0 → 1.03, shadow deepens), the other cards fade and drift 12px away from it, and the destination screen's title appears to inherit the card's label position. Reanimated's shared transition tag API plus the existing `ios_from_right` stack animation gets 90% of this effect. The remaining 10% (label morph) is a crossfade choreographed on the nav timing. Every hub→leaf navigation in the app then teaches the same physical metaphor: you went *into* the thing you touched.
+When a tools card is tapped, the card itself should become the next screen's header: the GlassCard lifts (scale 1.0 to 1.03, shadow deepens), the other cards fade and drift 12px away from it, and the destination screen's title appears to inherit the card's label position. Reanimated's shared transition tag API plus the existing `ios_from_right` stack animation gets 90% of this effect. The remaining 10% (label morph) is a crossfade choreographed on the nav timing. Every hub-to-leaf navigation in the app then teaches the same physical metaphor: you went *into* the thing you touched.
 
-### 2.2 The Haptic Grammar
+### 2.2 Gyroscopic Parallax (Shadowbox Effect)
+
+**Feasibility: high.** expo-sensors already drives the mesh gradient; extending it to interface layers adds one `useAnimatedSensor` subscription, already in the tree.
+
+Today the gyroscope moves only the background. The Shadowbox Effect extends that motion across the full depth stack: the mesh gradient drifts at its current rate (1x), GlassCard surfaces shift at 0.4x, the card's text content shifts at 0.15x. The result is a three-layer parallax that gives every screen a physical feeling of depth, like looking through glass at something with real volume behind it.
+
+Implementation: the existing `rotation.sensor` SharedValue feeds three `useDerivedValue` offsets. Each layer reads the appropriate fraction. GlassCard and ScreenScaffold content receive their offset as a `transform` prop on an `Animated.View` wrapper, zero cost on the JS thread. The background mesh already handles the deepest layer.
+
+Two rules: (1) parallax magnitude caps at 8px on any axis so it never causes layout shifts, and (2) reduceMotion zeros all three offsets, collapsing back to the flat layout. On that axis, the feature is additive only.
+
+### 2.3 The Haptic Grammar
 
 Haptics are currently per-button. Define a grammar and apply it everywhere, so the hand learns the app the way the eye does:
 
@@ -81,7 +91,7 @@ Haptics are currently per-button. Define a grammar and apply it everywhere, so t
 
 The rising triplet ("complete") is three Light impacts at 0ms/90ms/200ms. It becomes the app's signature: the safety plan finishing, a learning path section closing, an exit-bag checklist hitting 100%. Users will feel accomplishment before they read it.
 
-### 2.3 Scroll-Driven Editorial Storytelling
+### 2.4 Scroll-Driven Editorial Storytelling
 
 EditorialScreen blocks currently fade in once. Upgrade to scroll-progress choreography using the existing ScrollContext SharedValue:
 
@@ -92,11 +102,11 @@ EditorialScreen blocks currently fade in once. Upgrade to scroll-progress choreo
 
 All UI-thread, all interruptible, all gated behind reduceMotion (where blocks simply render complete). This turns the densest educational screens into something that feels authored, like scrolling a well-made longform article.
 
-### 2.4 Breathing Idle States
+### 2.5 Breathing Idle States
 
-Any screen at rest for 20+ seconds gains an almost-subliminal idle motion: the primary CTA's shadow radius oscillates ±2px on an 8-second sine. It reads as the interface quietly waiting, not demanding. Skia shimmer is reserved for loading. This is presence.
+Any screen at rest for 20+ seconds gains an almost-subliminal idle motion: the primary CTA's shadow radius oscillates +/- 2px on an 8-second sine. It reads as the interface quietly waiting, not demanding. Skia shimmer is reserved for loading. This is presence.
 
-### 2.5 Completion Moments (celebration without confetti)
+### 2.6 Completion Moments (celebration without confetti)
 
 When a survivor finishes their safety plan, the moment deserves weight. Not confetti (wrong register, and particles on screen are visible across a room). Instead: the screen's content fades, the mesh gradient blooms once (blobs swell 15% and settle over 1.8s), the rising-triplet haptic fires, and a single line appears in display type: "Your plan is ready. It stays with you." Quiet pride. The same bloom pattern, smaller, marks every section completion across the app.
 
@@ -120,17 +130,27 @@ The decoder currently offers "borrow a response" copy. Extend it into an interac
 
 ### 3.4 The Weight (financial decoder companion)
 
-An interactive Skia visualization for the financial module: each financial control behavior the user taps (allowance, hidden accounts, debt in your name, sabotaged job) adds a rendered weight to a hanging beam that visibly sinks. Removing one (tapping a resource: "a separate account," "credit freeze," "advocate help") visibly lifts it. The physics are honest: one resource does not rebalance four weights. Interaction time on this screen *is* comprehension time.
+An interactive Skia visualization for the financial module: each financial control behavior the user taps (allowance, hidden accounts, debt in your name, sabotaged job) adds a rendered weight to a hanging beam that visibly sinks. Removing one (tapping a resource: "a separate account," "credit freeze," "advocate help") visibly lifts it. The physics are honest: one resource does not rebalance four weights. Interaction time on this screen is comprehension time.
 
 ### 3.5 Grounding, Expanded (somatic suite v2)
 
 - **5-4-3-2-1 guided mode for ground.tsx:** the particle field gains an optional structured layer. Prompts surface one at a time ("find 5 things you can see") and the user taps anywhere to log each one, spawning a settled warm particle per tap. The classic grounding exercise becomes spatial and tactile.
 - **Pressure hold:** a new somatic tool. The user presses and holds anywhere with one or two thumbs, and a slow ring grows around each touch point with a deep, slow haptic pulse (the "breathe" double-pulse at 6-second intervals). Bilateral pressure and slow rhythm are established regulation techniques. Screen stays mostly dark. Usable in a pocket-glance situation.
-- **Humming bar:** with audio, a sustained low tone whose pitch the user bends by dragging vertically (the listen.tsx wave, but generative tone instead of a loop). Humming and vocal toning regulate the vagus nerve. The interface invites matching the tone aloud.
+- **Humming bar:** with audio, a sustained low tone whose pitch the user bends by dragging vertically (the listen.tsx wave, but a generative tone instead of a loop). Humming and vocal toning regulate the vagus nerve. The interface invites matching the tone aloud.
 
 ### 3.6 "What Would You Say?" Scenario Cards
 
 A swipeable card deck (gesture-handler pan, spring snap) for the supporter track. Each card poses a moment ("Your friend says: he only gets like that when he drinks"). The user flips the card (3D rotateY) to reveal the response that helps and a response that backfires, with one line of why. Ten cards per deck, three decks (friend, parent, coworker). The flip interaction creates a micro-commitment: you guess before you see. Guessing is where learning happens.
+
+### 3.7 Vocal Vagus Toning (Resonance Mirror)
+
+**Concept:** A full-screen visualization that responds to the user's humming or low vocal toning in real time. As the user hums, a Skia ring expands and brightens. The ring's radius tracks pitch (lower tones produce wider, calmer rings). When the user's tone matches a target frequency, a subtle shimmer confirms resonance. Vocal toning activates the vagus nerve directly and is one of the fastest available routes to nervous-system regulation.
+
+**Feasibility note:** Real-time pitch detection from microphone input requires continuous audio capture and signal processing. The current stack (`expo-audio`) supports playback and recording but does not expose a real-time audio analysis API. Building this feature as described requires either a native Swift module (AVAudioEngine with frequency analysis) or a React Native Web Audio bridge, neither of which ships today.
+
+**What ships now:** The humming bar in section 3.5 is the feasible subset. The user controls pitch by dragging, which invites humming along with the tone. It is the same exercise with manual rather than voice-driven feedback.
+
+**Path to full implementation:** A `NativeModules.AudioPitch` wrapper around AVAudioEngine's tap mechanism, returning fundamental frequency via a Reanimated `SharedValue` updated at 60fps. This is a 2027 native module build once the core feature set is stable. Until then, the humming bar is the honest version of the same idea.
 
 ---
 
@@ -160,7 +180,7 @@ A guided builder of five prompts ("a time you protected someone," "a skill nobod
 
 ### 4.6 Routine Builder (somatic sequences)
 
-Users chain somatic tools into a named sequence ("before pickup": breathe 2 min → pressure hold 1 min → one affirmation card) and run it as a guided flow with auto-advance and the haptic grammar marking transitions. Sequences are the somatic suite's retention engine: a tool you configured is a tool you return to. Three preset sequences ship for users who never build their own.
+Users chain somatic tools into a named sequence ("before pickup": breathe 2 min, pressure hold 1 min, one affirmation card) and run it as a guided flow with auto-advance and the haptic grammar marking transitions. Sequences are the somatic suite's retention engine: a tool you configured is a tool you return to. Three preset sequences ship for users who never build their own.
 
 ---
 
@@ -186,6 +206,14 @@ The 5-4-3-2-1 prompts, the breathe guide line, and the affirmation deck each acc
 
 One setting with three positions that tunes the whole sensory system at once: **Full** (all motion, haptics, ambience), **Soft** (entrances on, idle motion off, haptics on), **Still** (the reduceMotion experience by choice, haptics off except safety warnings). Reduce Motion users land in Still automatically. Everyone else gets to choose how loud the app feels, which is itself a trauma-informed act: control over stimulus is regulation.
 
+### 5.6 Kinetic Anchor (Tremor-Adaptive Physics)
+
+**Concept:** In moments of acute stress, fine motor control degrades. The nervous system that needs the app most is the one least able to tap precisely. Kinetic Anchor is a mode that compensates for this: spring animations dampen to near-zero, all interactive touch targets expand by 8pt on each edge, scroll sensitivity decreases, and gesture velocity thresholds lower so deliberate slow gestures register more reliably than fast accidental ones.
+
+**Feasibility note:** The original concept described auto-detection of panic tremors from accelerometer data. This is not a solved problem in consumer software. Accelerometer activity during walking, one-handed use, or a child grabbing the phone is indistinguishable from tremor, and false positives would change the interface unexpectedly at the worst moments. Auto-detection is not the right mechanism here.
+
+**What ships instead:** A manual toggle in the Quiet Mode dial (or as a fourth position: "Anchor"). The user activates it deliberately. Many survivors know when they are in a heightened state and can make that choice. The technical implementation is straightforward: a `useSharedValue<boolean>` in ThemeContext that all interactive components read. Gesture thresholds and target sizes are already configurable in gesture-handler. This is a half-day build that provides real value without the reliability risks of inference from sensor data.
+
 ---
 
 ## Part VI — Educational Resources as an Engagement System
@@ -194,9 +222,9 @@ One setting with three positions that tunes the whole sensory system at once: **
 
 The learn/decipher content reorganized into three named paths, each 5–7 screens with a visible progress rule (a thin line that fills, no percentages, no badges):
 
-- **Seeing it** — definitions → cycle wheel → tension line → decoder
-- **Naming it** — coercion → financial → DARVO deep-dive → glossary review
-- **Acting on it** — rights by state → safety plan → exit bag → network mapper
+- **Seeing it** — definitions, cycle wheel, tension line, decoder
+- **Naming it** — coercion, financial, DARVO deep-dive, glossary review
+- **Acting on it** — rights by state, safety plan, exit bag, network mapper
 
 Paths resume where the user left off ("Continue: Seeing it, part 3" appears as a quiet card on the tools hub). Resume-where-you-left-off is the most powerful honest retention mechanic in software, and it requires storing only one integer per path.
 
@@ -236,23 +264,41 @@ Honest accounting, because "use time increaser" has a dark and a light reading.
 - Push-based recall of any kind (covered in FEATURES-2026 anti-features)
 - Variable rewards, mystery boxes, spin wheels
 - Social comparison or sharing metrics
-- Time-on-screen as a KPI. The north-star metric is *completed actions* (plans finished, calls placed, paths completed, bags packed), measured by nothing, because we ship no analytics. We design for the metric we cannot see, which keeps us honest.
+- Time-on-screen as a KPI. The north-star metric is completed actions (plans finished, calls placed, paths completed, bags packed), measured by nothing, because we ship no analytics. We design for the metric we cannot see, which keeps us honest.
 
 A survivor's time is contested. An app that wastes it on engagement theater is taking something from someone who has little to spare. An app that makes an hour of learning feel like twenty minutes is giving something back. Every mechanic above is sorted by that line.
 
 ---
 
-## Part VIII — Build Order
+## Part VIII — On-Device Pattern Intelligence
+
+This section bridges to FEATURES-2026.md, where the safety engineering is detailed. It belongs here too because the experience layer is how survivors will encounter it.
+
+### 8.1 Local CoreML Pattern Engine (Vault Decoder)
+
+**The idea:** The vault contains notes. Some of those notes describe things the abuser said or did. A local pattern-recognition layer could surface language in those notes that matches established patterns of coercive control, offering a reflection: "this note describes monitoring behavior" or "this pattern appears in three of your recent entries."
+
+**Feasibility note:** CoreML cannot be trained on-device from a small personal dataset. On-device model training requires hundreds of examples across a consistent schema and significant compute. A vault with twenty notes does not provide that. Any framing of this as "learns the abuser's patterns over time" overstates what the technology can do and risks giving false confidence.
+
+**What is actually feasible:** A pre-trained on-device classifier (a Core ML model bundled with the app) that scores text against a fixed taxonomy of coercive control language, the same taxonomy that powers the decoder chips today. The model never updates. It is a pattern-matcher, not a learner. The experience: a user long-presses a vault note and taps "Decode this," and the note text runs through the classifier locally with zero network contact. Matched patterns appear as the same chip labels used in the decoder screens. No new taxonomy is introduced, no new copy is generated. The vault becomes a mirror for their own recorded experience, reflected through already-reviewed framing.
+
+The full engineering design (ephemeral inference, no logging, model bundling, privacy constraints) is in FEATURES-2026.md section 5. The experience layer here is one interaction: long-press, decode, read. The technical affordance that makes it possible is the same one that makes everything in this app possible: everything stays on the device.
+
+---
+
+## Part IX — Build Order
 
 | Wave | Items | Rationale |
 |---|---|---|
-| 1 | Time-of-day palettes, haptic grammar, accent picker, quiet mode dial | System-level, everything after inherits them |
-| 2 | Scroll-driven editorial, completion moments, depth layer | Upgrades every existing content screen at once |
+| 1 | Time-of-day palettes, haptic grammar, accent picker, quiet mode dial (incl. Kinetic Anchor position) | System-level, everything after inherits them |
+| 2 | Scroll-driven editorial, completion moments, depth layer, gyroscopic parallax | Upgrades every existing content screen at once; parallax shares the existing sensor subscription |
 | 3 | One Thing card, learning paths + resume, personal glossary | The pull-based engagement core |
 | 4 | Cycle wheel, build-a-reply, myth cards, scenario decks | Interactive education flagships |
 | 5 | Exit bag builder, network mapper, code word studio | Vault-coupled builders (sequenced after FEATURES-2026 decoy work) |
 | 6 | Soundscape mixer, somatic v2, routine builder | Audio asset clearance gates this wave |
 | 7 | Shared-element transitions, gradient weather, seasonal drift | Polish horizon |
+| 8 | On-device vault decoder (CoreML bundle) | Native model build + privacy review + Rainbow content sign-off |
+| Later | Vocal Vagus Toning full implementation | Requires native AVAudioEngine module (2027 native build cycle) |
 
 All content-bearing items (myth cards, scenario decks, strength prompts, state deep dives) enter Rainbow content review at wave start, not wave end. Spanish localization applies to every string introduced here, so all copy ships through the i18n layer from wave 1 onward, even before translation exists.
 
