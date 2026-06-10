@@ -11,7 +11,7 @@
     "web": "expo start --web",
     "build:preview": "eas build --platform ios --profile preview",
     "build:production": "eas build --platform ios --profile production",
-    "update": "EXPO_TOKEN=-PYxecwazsG6pAAI659z6fRbzR1HMTVjgucHlOmS eas update --auto",
+    "update": "eas update --auto",
     "submit:ios": "eas submit --platform ios"
   },
   "dependencies": {
