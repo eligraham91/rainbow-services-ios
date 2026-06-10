@@ -5,7 +5,7 @@ import {
   View,
   Pressable,
   Vibration,
-  AccessibilityInfo,
+  useWindowDimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +28,6 @@ import Svg, { Path, Circle } from 'react-native-svg';
 let RINGTONE: number | null = null;
 try { RINGTONE = require('@/../assets/audio/ringtone.m4a'); } catch { /* asset not bundled yet */ }
 
-const SLIDE_THRESHOLD = 200;
 const PUCK_SIZE = 72;
 
 function PhoneIcon({ color, rotate }: { color: string; rotate?: boolean }) {
@@ -95,8 +94,14 @@ function RingWave({ delay }: { delay: number }) {
 
 export default function FakeCallIncomingScreen() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { callerName } = useLocalSearchParams<{ callerName: string }>();
   const name = callerName?.trim() || 'Mom';
+
+  // Track spans the screen minus section padding (32×2) and inner
+  // track padding (6×2); puck travels the remainder.
+  const maxSlide = width - 64 - 12 - PUCK_SIZE;
+  const acceptAt = maxSlide * 0.85;
 
   const player = useAudioPlayer(RINGTONE ?? null);
   const slideX = useSharedValue(0);
@@ -145,15 +150,21 @@ export default function FakeCallIncomingScreen() {
     transform: [{ translateX: slideX.value }],
   }));
 
+  // Hint fades out as the puck approaches it, like the native slider
+  const hintStyle = useAnimatedStyle(() => ({
+    opacity: 1 - Math.min(1, slideX.value / (maxSlide * 0.5)),
+  }));
+
   const pan = Gesture.Pan()
     .onUpdate((e) => {
       'worklet';
-      const clamped = Math.max(0, Math.min(SLIDE_THRESHOLD, e.translationX));
+      const clamped = Math.max(0, Math.min(maxSlide, e.translationX));
       slideX.value = clamped;
     })
     .onEnd(() => {
       'worklet';
-      if (slideX.value >= SLIDE_THRESHOLD) {
+      if (slideX.value >= acceptAt) {
+        slideX.value = withTiming(maxSlide, { duration: 80 });
         runOnJS(handleAccept)();
       } else {
         slideX.value = withSpring(0, { damping: 18, stiffness: 200 });
@@ -182,7 +193,7 @@ export default function FakeCallIncomingScreen() {
         {/* Slide to answer */}
         <View style={styles.slideTrackWrap}>
           <View style={styles.slideTrack}>
-            <Text style={styles.slideHint}>slide to answer</Text>
+            <Animated.Text style={[styles.slideHint, hintStyle]}>slide to answer</Animated.Text>
             <GestureDetector gesture={pan}>
               <Animated.View
                 style={[styles.slidePuck, styles.acceptPuck, puckStyle]}

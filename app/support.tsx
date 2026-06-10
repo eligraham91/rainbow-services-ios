@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
-  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
@@ -26,7 +25,16 @@ import {
   NextStepPanel,
 } from '@components/Primitives';
 import { PhoneIcon, FindHelpIcon } from '@components/Icons';
+import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 import { useTheme } from '@theme/ThemeContext';
+
+const NATIONAL_HOTLINE: CallContact = {
+  tag: '24/7 CRISIS LINE',
+  name: 'National DV Hotline',
+  number: '1-800-799-7233',
+  dial: '18007997233',
+  note: 'Advocates speak with supporters, family, and friends. You do not need to be a survivor to call.',
+};
 
 const ENTRY_SPRING = { mass: 1, stiffness: 180, damping: 20 } as const;
 
@@ -53,6 +61,7 @@ function AnimatedCard({
 export default function SupportScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const [call, setCall] = useState<CallContact | null>(null);
 
   const accentTint = theme.dark ? 'rgba(159,111,227,0.12)' : 'rgba(74,20,140,0.06)';
 
@@ -160,7 +169,7 @@ export default function SupportScreen() {
                   </Text>
                   <Text
                     style={[styles.callLink, { color: theme.accent }]}
-                    onPress={() => Linking.openURL('tel:18007997233')}
+                    onPress={() => setCall(NATIONAL_HOTLINE)}
                   >
                     1-800-799-7233
                   </Text>
@@ -190,6 +199,7 @@ export default function SupportScreen() {
         </ScrollView>
       </SafeAreaView>
       <QuickExitButton />
+      <CallSheet contact={call} onClose={() => setCall(null)} />
     </View>
   );
 }

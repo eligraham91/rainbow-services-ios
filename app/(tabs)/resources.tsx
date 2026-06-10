@@ -27,6 +27,7 @@ import { GlassCard } from '@components/GlassCard';
 import { EditorialHeader } from '@components/ui/EditorialHeader';
 import { SectionLabel, HRule } from '@components/Primitives';
 import { AlertIcon, PhoneIcon, BookmarkIcon, CopyIcon, TrashIcon } from '@components/Icons';
+import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 import { useTheme } from '@theme/ThemeContext';
 import { fetchShelters, type ShelterMapProgram } from '@utils/resourceSearch';
 import { SERVICE_FILTERS } from '@utils/shelterTypes';
@@ -65,11 +66,13 @@ function ShelterCard({
   index,
   saved,
   onToggleSave,
+  onCall,
 }: {
   program: ShelterMapProgram;
   index: number;
   saved: boolean;
   onToggleSave: (p: ShelterMapProgram) => void;
+  onCall: (contact: CallContact) => void;
 }) {
   const { theme } = useTheme();
   const translateY = useSharedValue(30);
@@ -141,7 +144,15 @@ function ShelterCard({
 
         {callPhone ? (
           <Pressable
-            onPress={() => Linking.openURL(`tel:${callPhone.replace(/\D/g, '')}`)}
+            onPress={() =>
+              onCall({
+                tag: program.hotline ? 'PROGRAM HOTLINE' : 'PROGRAM LINE',
+                name: displayName,
+                number: callPhone,
+                dial: callPhone.replace(/\D/g, ''),
+                note: 'Call to verify availability and intake process before visiting.',
+              })
+            }
             style={[styles.callBtn, { backgroundColor: theme.accent }]}
             accessibilityRole="button"
             accessibilityLabel={`Call ${displayName}`}
@@ -263,6 +274,7 @@ export default function ResourcesScreen() {
   const [loading, setLoading] = useState(true);
   const [savedPrograms, setSavedPrograms] = useState<ShelterMapProgram[]>([]);
   const [showSafeList, setShowSafeList] = useState(false);
+  const [call, setCall] = useState<CallContact | null>(null);
 
   const scrollY = useScrollOffset();
   const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
@@ -333,7 +345,15 @@ export default function ResourcesScreen() {
           <GlassCard style={[styles.hotlineCard, { borderLeftColor: theme.accent }]}>
             <Text style={[styles.hotlineLabel, { color: theme.muted }]}>NATIONAL HOTLINE · 24/7 · FREE</Text>
             <Pressable
-              onPress={() => Linking.openURL(`tel:${NATIONAL_HOTLINE.phone}`)}
+              onPress={() =>
+                setCall({
+                  tag: 'NATIONAL HOTLINE · 24/7 · FREE',
+                  name: 'National DV Hotline',
+                  number: NATIONAL_HOTLINE.phoneDisplay,
+                  dial: NATIONAL_HOTLINE.phone,
+                  note: NATIONAL_HOTLINE.note,
+                })
+              }
               accessibilityRole="button"
               accessibilityLabel="Call National Domestic Violence Hotline"
             >
@@ -430,6 +450,7 @@ export default function ResourcesScreen() {
                     index={i}
                     saved={savedIds.has(r.id)}
                     onToggleSave={toggleSave}
+                    onCall={setCall}
                   />
                 ))
               )}
@@ -450,6 +471,8 @@ export default function ResourcesScreen() {
         onRemove={removeSaved}
         onClose={() => setShowSafeList(false)}
       />
+
+      <CallSheet contact={call} onClose={() => setCall(null)} />
     </View>
   );
 }

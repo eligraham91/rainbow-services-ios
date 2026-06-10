@@ -104,7 +104,8 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     router.replace('/stealth');
   }
 
-  const barBg = theme.dark ? 'rgba(42,38,24,0.82)' : 'rgba(245,241,232,0.82)';
+  // Tint over the blur keeps icons/labels legible above busy content
+  const barBg = theme.dark ? 'rgba(42,38,24,0.72)' : 'rgba(245,241,232,0.72)';
 
   return (
     <BlurView
@@ -112,7 +113,7 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
       tint={theme.dark ? 'dark' : 'light'}
       style={[
         styles.bar,
-        { paddingBottom: insets.bottom + 6, borderTopColor: theme.rule },
+        { paddingBottom: insets.bottom + 6, borderTopColor: theme.rule, backgroundColor: barBg },
       ]}
     >
       {/* Morphing active pill */}

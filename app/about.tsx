@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -11,10 +11,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuickExitButton } from '@components/QuickExitButton';
 import { GlassCard } from '@components/GlassCard';
 import { HRule } from '@components/Primitives';
+import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 import { useTheme } from '@theme/ThemeContext';
+
+const RS_HOTLINE: CallContact = {
+  tag: 'CRISIS HOTLINE · 24/7',
+  name: 'Rainbow Services',
+  number: '310-547-9343',
+  dial: '3105479343',
+  note: 'Free, confidential, 24/7. English and Spanish. Call and say your language for other language support.',
+};
 
 export default function AboutScreen() {
   const { theme, override, setOverride } = useTheme();
+  const [call, setCall] = useState<CallContact | null>(null);
   const darkEnabled = override === 'dark';
 
   return (
@@ -50,7 +60,7 @@ export default function AboutScreen() {
             <Text style={[styles.attrLabel, { color: theme.muted }]}>CRISIS HOTLINE</Text>
             <Text
               style={[styles.attrPhone, { color: theme.accent }]}
-              onPress={() => Linking.openURL('tel:3105479343')}
+              onPress={() => setCall(RS_HOTLINE)}
             >
               310-547-9343
             </Text>
@@ -101,6 +111,7 @@ export default function AboutScreen() {
         </ScrollView>
       </SafeAreaView>
       <QuickExitButton />
+      <CallSheet contact={call} onClose={() => setCall(null)} />
     </View>
   );
 }
