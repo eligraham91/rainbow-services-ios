@@ -335,7 +335,10 @@ export default function ResourcesScreen() {
             <AlertIcon size={16} color={theme.danger} />
             <Text style={[styles.dangerText, { color: theme.text }]}>
               In immediate danger?{' '}
-              <Text style={[styles.dangerLink, { color: theme.danger }]} onPress={() => Linking.openURL('tel:911')}>
+              <Text
+                style={[styles.dangerLink, { color: theme.danger }]}
+                onPress={() => setCall({ name: '911', number: '911', dial: '911', tag: 'EMERGENCY', danger: true })}
+              >
                 CALL 911 NOW
               </Text>
             </Text>

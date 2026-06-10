@@ -10,9 +10,11 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useTheme } from '@theme/ThemeContext';
+import { useTraumaInformedMotion } from '@utils/motion';
 
 export default function FakeCallWaitingScreen() {
   const { theme } = useTheme();
+  const { reduceMotion } = useTraumaInformedMotion();
   const insets = useSafeAreaInsets();
   const { callerName, delay } = useLocalSearchParams<{ callerName: string; delay: string }>();
   const seconds = parseInt(delay ?? '10', 10);
@@ -26,10 +28,12 @@ export default function FakeCallWaitingScreen() {
   }));
 
   useEffect(() => {
-    pulse.value = withRepeat(
-      withTiming(1.6, { duration: 900, easing: Easing.out(Easing.quad) }),
-      -1, true
-    );
+    if (!reduceMotion) {
+      pulse.value = withRepeat(
+        withTiming(1.6, { duration: 900, easing: Easing.out(Easing.quad) }),
+        -1, true
+      );
+    }
 
     const tick = setInterval(() => {
       remaining.current -= 1;

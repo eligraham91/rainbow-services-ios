@@ -68,7 +68,7 @@ function EntryCard({ entry, index }: { entry: HowToEntry; index: number }) {
         </Pressable>
 
         {open && (
-          <Animated.View entering={FadeInDown.duration(200)} style={styles.entryBody}>
+          <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(200)} style={styles.entryBody}>
             <View style={[styles.divider, { backgroundColor: theme.rule }]} />
 
             {entry.steps.map((step, si) => (

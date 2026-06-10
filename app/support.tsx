@@ -15,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { QuickExitButton } from '@components/QuickExitButton';
+import { useTraumaInformedMotion } from '@utils/motion';
 
 import { GlassCard } from '@components/GlassCard';
 
@@ -45,9 +46,11 @@ function AnimatedCard({
   index: number;
   children: React.ReactNode;
 }) {
-  const translateY = useSharedValue(40);
-  const opacity = useSharedValue(0);
+  const { reduceMotion } = useTraumaInformedMotion();
+  const translateY = useSharedValue(reduceMotion ? 0 : 40);
+  const opacity = useSharedValue(reduceMotion ? 1 : 0);
   React.useEffect(() => {
+    if (reduceMotion) return;
     translateY.value = withDelay(index * 80, withSpring(0, ENTRY_SPRING));
     opacity.value = withDelay(index * 80, withTiming(1, { duration: 280 }));
   }, []);
@@ -188,7 +191,7 @@ export default function SupportScreen() {
                   </Text>
                   <Text
                     style={[styles.callLink, { color: theme.accent }]}
-                    onPress={() => router.push('/resources')}
+                    onPress={() => router.push('/(tabs)/resources')}
                   >
                     Browse Resources
                   </Text>

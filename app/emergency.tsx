@@ -25,6 +25,7 @@ import {
 } from '@components/Primitives';
 import { PhoneIcon, ShieldIcon, AlertIcon } from '@components/Icons';
 import { useTheme } from '@theme/ThemeContext';
+import { useTraumaInformedMotion } from '@utils/motion';
 import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 
 const ENTRY_SPRING = { mass: 1, stiffness: 180, damping: 20 } as const;
@@ -112,9 +113,11 @@ function AnimatedCard({
   index: number;
   children: React.ReactNode;
 }) {
-  const translateY = useSharedValue(40);
-  const opacity = useSharedValue(0);
+  const { reduceMotion } = useTraumaInformedMotion();
+  const translateY = useSharedValue(reduceMotion ? 0 : 40);
+  const opacity = useSharedValue(reduceMotion ? 1 : 0);
   React.useEffect(() => {
+    if (reduceMotion) return;
     translateY.value = withDelay(index * 80, withSpring(0, ENTRY_SPRING));
     opacity.value = withDelay(index * 80, withTiming(1, { duration: 280 }));
   }, []);
@@ -288,7 +291,7 @@ export default function EmergencyScreen() {
                 </View>
               </View>
               <Pressable
-                onPress={() => router.push('/resources')}
+                onPress={() => router.push('/(tabs)/resources')}
                 style={[styles.callBtn, styles.callBtnOutline, { borderColor: theme.rule }]}
                 accessibilityRole="button"
               >

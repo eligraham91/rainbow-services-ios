@@ -271,9 +271,7 @@ export default function VaultScreen() {
 
   if (authState === 'loading') {
     return (
-      <View style={[styles.root, styles.center]}>
-        
-      </View>
+      <View style={[styles.root, styles.center, { backgroundColor: theme.background }]} />
     );
   }
 

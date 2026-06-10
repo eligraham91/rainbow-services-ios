@@ -14,6 +14,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ScreenScaffold } from '@components/ui/ScreenScaffold';
 import { GlassCard } from '@components/GlassCard';
 import { useTheme } from '@theme/ThemeContext';
+import { useTraumaInformedMotion } from '@utils/motion';
 import { loadFakeCallConfig, saveFakeCallConfig } from '@utils/fakeCall';
 
 const DELAYS = [
@@ -36,6 +37,7 @@ Notifications.setNotificationHandler({
 
 export default function FakeCallSetupScreen() {
   const { theme } = useTheme();
+  const { reduceMotion } = useTraumaInformedMotion();
   const [callerName, setCallerName] = useState('Mom');
   const [selectedDelay, setSelectedDelay] = useState(0);
   const [notifEnabled, setNotifEnabled] = useState(false);
@@ -95,7 +97,7 @@ export default function FakeCallSetupScreen() {
       showBack
     >
       {/* Caller name */}
-      <Animated.View entering={FadeInDown.duration(280).delay(60)}>
+      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(60)}>
         <GlassCard style={styles.card}>
           <Text style={[styles.fieldLabel, { color: theme.muted }]}>CALLER NAME</Text>
           <TextInput
@@ -115,7 +117,7 @@ export default function FakeCallSetupScreen() {
       </Animated.View>
 
       {/* Delay picker */}
-      <Animated.View entering={FadeInDown.duration(280).delay(120)}>
+      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(120)}>
         <GlassCard style={styles.card}>
           <Text style={[styles.fieldLabel, { color: theme.muted }]}>RING IN</Text>
           <View style={styles.delayRow}>
@@ -147,7 +149,7 @@ export default function FakeCallSetupScreen() {
 
       {/* Lock screen notification toggle (only relevant if delay > 0) */}
       {selectedDelay > 0 && (
-        <Animated.View entering={FadeInDown.duration(260).delay(60)}>
+        <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(260).delay(60)}>
           <GlassCard style={styles.card}>
             <View style={styles.toggleRow}>
               <View style={styles.toggleText}>
@@ -168,7 +170,7 @@ export default function FakeCallSetupScreen() {
       )}
 
       {/* Start button */}
-      <Animated.View entering={FadeInDown.duration(280).delay(180)}>
+      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(180)}>
         <Pressable
           onPress={handleStart}
           style={[styles.startBtn, { backgroundColor: theme.accent }]}
@@ -181,7 +183,7 @@ export default function FakeCallSetupScreen() {
         </Pressable>
       </Animated.View>
 
-      <Animated.View entering={FadeInDown.duration(260).delay(240)}>
+      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(260).delay(240)}>
         <Text style={[styles.footnote, { color: theme.faint }]}>
           The call screen carries no app name or branding. Tap decline or the back gesture to end the call.
         </Text>
