@@ -25,6 +25,7 @@ import { QuickExitButton } from '@components/QuickExitButton';
 import { PrivacyCheck } from '@components/Primitives';
 import { DocumentIcon, ChecklistIcon } from '@components/Icons';
 import { useTheme } from '@theme/ThemeContext';
+import { complete as hapticComplete } from '@utils/haptics';
 import {
   initVault,
   getSafetyPlan,
@@ -339,6 +340,7 @@ export default function PlanScreen() {
       setStepIndex(i => i + 1);
     } else {
       try { flags.set('sh_plan_saved', true); } catch {}
+      hapticComplete();
       setStage('done');
     }
   };

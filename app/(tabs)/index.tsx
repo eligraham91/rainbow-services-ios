@@ -10,6 +10,7 @@ import { PressableScale } from '@components/ui/PressableScale';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useScrollOffset } from '@components/ScrollContext';
+import { todaysThing } from '@data/oneThing';
 
 interface DoorItem {
   num: string;
@@ -78,6 +79,33 @@ function Door({ item, index }: { item: DoorItem; index: number }) {
   );
 }
 
+function OneThingCard() {
+  const { theme } = useTheme();
+  const { reduceMotion } = useTraumaInformedMotion();
+  const thing = React.useMemo(() => todaysThing(), []);
+
+  return (
+    <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(300).delay(350)}>
+      <PressableScale
+        onPress={() => {
+          if (thing.route) {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            router.push(thing.route as never);
+          }
+        }}
+        scaleTo={0.98}
+      >
+        <GlassCard style={styles.oneThing}>
+          <Text style={[styles.oneThingEyebrow, { color: theme.accent }]}>
+            [ ONE THING TODAY · {thing.eyebrow} ]
+          </Text>
+          <Text style={[styles.oneThingText, { color: theme.text }]}>{thing.text}</Text>
+        </GlassCard>
+      </PressableScale>
+    </Animated.View>
+  );
+}
+
 export default function HomeScreen() {
   const { theme } = useTheme();
   const { reduceMotion } = useTraumaInformedMotion();
@@ -125,6 +153,9 @@ export default function HomeScreen() {
       <View style={styles.doors}>
         {DOORS.map((d, i) => <Door key={d.num} item={d} index={i} />)}
       </View>
+
+      {/* One Thing — daily rotating card, pull-based (no push, no streaks) */}
+      <OneThingCard />
 
       {/* About link */}
       <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(400)}>
@@ -189,6 +220,18 @@ const styles = StyleSheet.create({
   },
   doorDesc: { fontFamily: 'Inter', fontSize: 13, lineHeight: 19 },
   doorArrow: { fontFamily: 'Inter', fontSize: 20, paddingRight: 18 },
+  oneThing: { padding: 18, marginBottom: 20 },
+  oneThingEyebrow: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 9,
+    letterSpacing: 1.2,
+    marginBottom: 8,
+  },
+  oneThingText: {
+    fontFamily: 'Inter',
+    fontSize: 14,
+    lineHeight: 21,
+  },
   aboutLink: { alignSelf: 'center', paddingVertical: 10 },
   aboutText: { fontFamily: 'Inter', fontSize: 12, textDecorationLine: 'underline' },
 });

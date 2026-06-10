@@ -30,7 +30,7 @@ function ShakeWatcher() {
 }
 
 function AppShell() {
-  const { theme } = useTheme();
+  const { theme, meshRgb } = useTheme();
   const scrollY = useScrollOffset();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ function AppShell() {
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <MeshGradientBg dark={theme.dark} scrollY={scrollY} />
+      <MeshGradientBg dark={theme.dark} scrollY={scrollY} meshRgb={meshRgb} />
       <ShakeWatcher />
       <Stack
         screenOptions={{

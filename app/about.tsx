@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Linking,
   Switch,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QuickExitButton } from '@components/QuickExitButton';
@@ -13,6 +14,8 @@ import { GlassCard } from '@components/GlassCard';
 import { HRule } from '@components/Primitives';
 import { CallSheet, type CallContact } from '@components/ui/CallSheet';
 import { useTheme } from '@theme/ThemeContext';
+import { ACCENT_CHOICES } from '@theme/colors';
+import { tick } from '@utils/haptics';
 
 const RS_HOTLINE: CallContact = {
   tag: 'CRISIS HOTLINE · 24/7',
@@ -23,7 +26,7 @@ const RS_HOTLINE: CallContact = {
 };
 
 export default function AboutScreen() {
-  const { theme, override, setOverride } = useTheme();
+  const { theme, override, setOverride, accentId, setAccentId } = useTheme();
   const [call, setCall] = useState<CallContact | null>(null);
   const darkEnabled = override === 'dark';
 
@@ -100,6 +103,37 @@ export default function AboutScreen() {
                 thumbColor="#FFFFFF"
                 accessibilityLabel="Toggle discreet dark mode"
               />
+            </View>
+          </GlassCard>
+
+          {/* Accent color picker */}
+          <GlassCard style={styles.card}>
+            <Text style={[styles.attrLabel, { color: theme.muted }]}>ACCENT COLOR</Text>
+            <Text style={[styles.toggleDesc, { color: theme.muted, marginBottom: 12 }]}>
+              Pick the color the app uses for links and highlights. Safety messaging always stays red.
+            </Text>
+            <View style={styles.swatchRow}>
+              {ACCENT_CHOICES.map(choice => {
+                const swatch = theme.dark ? choice.dark.accent : choice.light.accent;
+                const selected = choice.id === accentId;
+                return (
+                  <Pressable
+                    key={choice.id}
+                    onPress={() => {
+                      tick();
+                      setAccentId(choice.id);
+                    }}
+                    style={[
+                      styles.swatch,
+                      { backgroundColor: swatch },
+                      selected && { borderColor: theme.text, borderWidth: 2.5 },
+                    ]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${choice.label} accent color`}
+                  />
+                );
+              })}
             </View>
           </GlassCard>
 
@@ -198,6 +232,17 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontSize: 12,
     lineHeight: 17,
+  },
+  swatchRow: {
+    flexDirection: 'row',
+    gap: 12,
+    flexWrap: 'wrap',
+  },
+  swatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 0,
   },
   privacy: {
     fontFamily: 'Inter',
