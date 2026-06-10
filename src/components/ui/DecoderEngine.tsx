@@ -84,6 +84,12 @@ export function DecoderEngine({ eyebrow, title, examples }: DecoderEngineProps) 
 
                 if (chip) {
                   const words = seg.t.trim().split(/\s+/).filter(Boolean);
+                  // Pill tint must read on its bubble: light tint on the
+                  // accent "me" bubble and on dark-mode "them" bubbles,
+                  // dark tint only on light-mode "them" bubbles.
+                  const idlePillBg = bubble.from === 'them'
+                    ? (theme.dark ? 'rgba(243,238,221,0.14)' : 'rgba(45,30,61,0.10)')
+                    : 'rgba(255,255,255,0.22)';
                   return words.map((word, wi) => (
                     <Pressable
                       key={`${si}-${wi}`}
@@ -94,8 +100,8 @@ export function DecoderEngine({ eyebrow, title, examples }: DecoderEngineProps) 
                       style={[
                         styles.pill,
                         isActive
-                          ? [styles.pillActive, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.35)' : 'rgba(74,20,140,0.18)' }]
-                          : { backgroundColor: 'rgba(45,30,61,0.10)' },
+                          ? [styles.pillActive, { backgroundColor: theme.dark ? 'rgba(159,111,227,0.45)' : 'rgba(74,20,140,0.18)' }]
+                          : { backgroundColor: idlePillBg },
                       ]}
                     >
                       <Text style={[styles.pillText, { color: bubble.from === 'them' ? theme.text : '#FFFFFF' }]}>
