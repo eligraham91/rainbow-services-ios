@@ -11,81 +11,19 @@ import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
 import { useScrollOffset } from '@components/ScrollContext';
 import { todaysThing } from '@data/oneThing';
-
-interface DoorItem {
-  num: string;
-  section: string;
-  title: string;
-  desc: string;
-  route: string;
-  danger?: boolean;
-}
-
-const DOORS: DoorItem[] = [
-  {
-    num: '01',
-    section: 'EMERGENCY',
-    title: 'I need\nhelp now',
-    desc: 'Hotlines, and what to do in the next five minutes.',
-    route: '/emergency',
-    danger: true,
-  },
-  {
-    num: '02',
-    section: 'UNDERSTAND',
-    title: "I'm trying\nto understand",
-    desc: 'What abuse is, the patterns it follows, and what you can do.',
-    route: '/(tabs)/tools/learn/definitions',
-  },
-  {
-    num: '03',
-    section: 'SUPPORT',
-    title: "I'm helping\nsomeone else",
-    desc: 'How to support a person you care about without making it worse.',
-    route: '/support',
-  },
-];
-
-function Door({ item, index }: { item: DoorItem; index: number }) {
-  const { theme } = useTheme();
-  const { reduceMotion } = useTraumaInformedMotion();
-  const entering = reduceMotion ? undefined : FadeInDown.duration(320).delay(index * 90 + 80);
-
-  return (
-    <Animated.View entering={entering}>
-      <PressableScale
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-          router.push(item.route as never);
-        }}
-        scaleTo={0.975}
-      >
-        <GlassCard style={styles.door}>
-          {/* Left accent bar */}
-          {item.danger && (
-            <View style={[styles.doorAccent, { backgroundColor: theme.danger }]} />
-          )}
-          <View style={styles.doorContent}>
-            <Text style={[styles.doorNum, { color: theme.faint }]}>
-              [ {item.num} / {item.section} ]
-            </Text>
-            <Text style={[styles.doorTitle, { color: theme.text }]}>{item.title}</Text>
-            <Text style={[styles.doorDesc, { color: theme.muted }]}>{item.desc}</Text>
-          </View>
-          <Text style={[styles.doorArrow, { color: theme.accent }]}>→</Text>
-        </GlassCard>
-      </PressableScale>
-    </Animated.View>
-  );
-}
+import { HouseIcon, PhoneIcon, ToolsIcon } from '@components/Icons';
 
 function OneThingCard() {
   const { theme } = useTheme();
   const { reduceMotion } = useTraumaInformedMotion();
   const thing = React.useMemo(() => todaysThing(), []);
 
+  const entering = reduceMotion 
+    ? undefined 
+    : FadeInDown.delay(950).springify().mass(1.2).damping(16).stiffness(180);
+
   return (
-    <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(300).delay(350)}>
+    <Animated.View entering={entering}>
       <PressableScale
         onPress={() => {
           if (thing.route) {
@@ -111,7 +49,9 @@ export default function HomeScreen() {
   const { reduceMotion } = useTraumaInformedMotion();
   const insets = useSafeAreaInsets();
   const scrollY = useScrollOffset();
-  const scrollHandler = useAnimatedScrollHandler(e => { scrollY.value = e.contentOffset.y; });
+  const scrollHandler = useAnimatedScrollHandler(e => {
+    scrollY.value = e.contentOffset.y;
+  });
 
   return (
     <Animated.ScrollView
@@ -138,27 +78,103 @@ export default function HomeScreen() {
         </Text>
       </Animated.View>
 
-      {/* Hotline swipe-to-call */}
-      <Animated.View
-        entering={reduceMotion ? undefined : FadeInDown.duration(300).delay(120)}
-        style={styles.hotlineRow}
-      >
-        <SwipeToCall dial="3105479343" label="Slide to call · 310-547-9343" />
-        <Text style={[styles.dangerwarn, { color: theme.danger }]}>
-          CALL 911 NOW if in immediate danger.
-        </Text>
-      </Animated.View>
-
-      {/* Three doors */}
+      {/* Triage Grid Container */}
       <View style={styles.doors}>
-        {DOORS.map((d, i) => <Door key={d.num} item={d} index={i} />)}
+        
+        {/* Card 1: Find Safe Harbor (Shelter Map) */}
+        <Animated.View 
+          entering={reduceMotion ? undefined : FadeInDown.delay(500).springify().mass(1.2).damping(16).stiffness(180)}
+        >
+          <PressableScale
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/(tabs)/resources');
+            }}
+            scaleTo={0.975}
+          >
+            <GlassCard style={styles.door}>
+              <View style={styles.doorHeader}>
+                <View style={styles.iconWrapper}>
+                  <HouseIcon size={24} color={theme.accent} />
+                </View>
+                <View style={styles.doorText}>
+                  <Text style={[styles.doorNum, { color: theme.faint }]}>[ 01 / SHELTER MAP ]</Text>
+                  <Text style={[styles.doorTitle, { color: theme.text }]}>Find Safe Harbor</Text>
+                  <Text style={[styles.doorDesc, { color: theme.muted }]}>
+                    Locate emergency housing and confidential shelters near you.
+                  </Text>
+                </View>
+                <Text style={[styles.doorArrow, { color: theme.accent }]}>→</Text>
+              </View>
+            </GlassCard>
+          </PressableScale>
+        </Animated.View>
+
+        {/* Card 2: Call 24/7 Advocates (Hotline Slider) */}
+        <Animated.View 
+          entering={reduceMotion ? undefined : FadeInDown.delay(650).springify().mass(1.2).damping(16).stiffness(180)}
+        >
+          <GlassCard style={[styles.door, styles.hotlineCard]}>
+            <View style={styles.doorAccent} />
+            <View style={styles.doorHeader}>
+              <View style={styles.iconWrapper}>
+                <PhoneIcon size={24} color={theme.danger} />
+              </View>
+              <View style={styles.doorText}>
+                <Text style={[styles.doorNum, { color: theme.danger }]}>[ 02 / HOTLINE ]</Text>
+                <Text style={[styles.doorTitle, { color: theme.text }]}>Call 24/7 Advocates</Text>
+                <Text style={[styles.doorDesc, { color: theme.muted }]}>
+                  Get immediate, confidential support and safety planning.
+                </Text>
+              </View>
+            </View>
+            <View style={styles.swipeContainer}>
+              <SwipeToCall dial="3105479343" label="Slide to call · 310-547-9343" />
+            </View>
+            <Text style={[styles.dangerwarn, { color: theme.danger }]}>
+              CALL 911 NOW if in immediate danger.
+            </Text>
+          </GlassCard>
+        </Animated.View>
+
+        {/* Card 3: Access Tools & Planning (Tools Gateway) */}
+        <Animated.View 
+          entering={reduceMotion ? undefined : FadeInDown.delay(800).springify().mass(1.2).damping(16).stiffness(180)}
+        >
+          <PressableScale
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/(tabs)/tools');
+            }}
+            scaleTo={0.975}
+          >
+            <GlassCard style={styles.door}>
+              <View style={styles.doorHeader}>
+                <View style={styles.iconWrapper}>
+                  <ToolsIcon size={24} color={theme.accent} />
+                </View>
+                <View style={styles.doorText}>
+                  <Text style={[styles.doorNum, { color: theme.faint }]}>[ 03 / TOOLS ]</Text>
+                  <Text style={[styles.doorTitle, { color: theme.text }]}>Access Tools & Planning</Text>
+                  <Text style={[styles.doorDesc, { color: theme.muted }]}>
+                    Use safety planners, text thread decoders, and grounding guides.
+                  </Text>
+                </View>
+                <Text style={[styles.doorArrow, { color: theme.accent }]}>→</Text>
+              </View>
+            </GlassCard>
+          </PressableScale>
+        </Animated.View>
+
       </View>
 
-      {/* One Thing — daily rotating card, pull-based (no push, no streaks) */}
+      {/* One Thing — daily rotating card */}
       <OneThingCard />
 
       {/* About link */}
-      <Animated.View entering={reduceMotion ? undefined : FadeInDown.duration(280).delay(400)}>
+      <Animated.View 
+        entering={reduceMotion ? undefined : FadeInDown.delay(1100).springify().mass(1.2).damping(16).stiffness(180)}
+      >
         <Pressable
           onPress={() => router.push('/about')}
           style={styles.aboutLink}
@@ -172,7 +188,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
+  root: { flex: 1, backgroundColor: 'transparent' },
   content: { paddingHorizontal: 20, paddingBottom: 40 },
   eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 20 },
   eyebrow: { fontFamily: 'JetBrainsMono-Regular', fontSize: 10, letterSpacing: 1.5 },
@@ -192,23 +208,37 @@ const styles = StyleSheet.create({
     marginBottom: 28,
     maxWidth: 340,
   },
-  hotlineRow: { alignItems: 'center', gap: 10, marginBottom: 24 },
-  dangerwarn: {
-    fontFamily: 'JetBrainsMono-Regular',
-    fontSize: 11,
-    letterSpacing: 0.8,
-    textAlign: 'center',
-  },
-  doors: { gap: 10, marginBottom: 20 },
+  doors: { gap: 12, marginBottom: 20 },
   door: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 0,
+    padding: 18,
     overflow: 'hidden',
-    minHeight: 90,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
-  doorAccent: { width: 4, alignSelf: 'stretch' },
-  doorContent: { flex: 1, paddingVertical: 18, paddingHorizontal: 16 },
+  hotlineCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#C62828',
+  },
+  doorAccent: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  doorHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+  },
+  iconWrapper: {
+    marginTop: 4,
+    width: 32,
+    alignItems: 'center',
+  },
+  doorText: {
+    flex: 1,
+  },
   doorNum: { fontFamily: 'JetBrainsMono-Regular', fontSize: 10, letterSpacing: 1.2, marginBottom: 6 },
   doorTitle: {
     fontFamily: 'InterTight-ExtraBold',
@@ -219,8 +249,20 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   doorDesc: { fontFamily: 'Inter', fontSize: 13, lineHeight: 19 },
-  doorArrow: { fontFamily: 'Inter', fontSize: 20, paddingRight: 18 },
-  oneThing: { padding: 18, marginBottom: 20 },
+  doorArrow: { fontFamily: 'Inter', fontSize: 20, paddingRight: 6, marginTop: 4 },
+  swipeContainer: {
+    alignItems: 'center',
+    marginVertical: 16,
+    width: '100%',
+  },
+  dangerwarn: {
+    fontFamily: 'JetBrainsMono-Regular',
+    fontSize: 11,
+    letterSpacing: 0.8,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  oneThing: { padding: 18, marginBottom: 20, backgroundColor: 'transparent' },
   oneThingEyebrow: {
     fontFamily: 'JetBrainsMono-Regular',
     fontSize: 9,

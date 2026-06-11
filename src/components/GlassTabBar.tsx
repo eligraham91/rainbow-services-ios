@@ -9,7 +9,7 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { router } from 'expo-router';
-import Svg, { Path, Rect, Circle, G, Line } from 'react-native-svg';
+import Svg, { Path, Rect, Circle } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { useTheme } from '@theme/ThemeContext';
 import { useTraumaInformedMotion } from '@utils/motion';
@@ -31,14 +31,7 @@ function HomeIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function SearchIcon({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Circle cx={11} cy={11} r={7} stroke={color} strokeWidth={1.8} />
-      <Path d="M21 21l-4-4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
+
 function GridIcon({ color }: { color: string }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
@@ -49,20 +42,10 @@ function GridIcon({ color }: { color: string }) {
     </Svg>
   );
 }
-function LockIcon({ color }: { color: string }) {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Rect x={5} y={11} width={14} height={10} rx={2} stroke={color} strokeWidth={1.8} />
-      <Path d="M8 11V7a4 4 0 018 0v4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
 
 const ICON_MAP: Record<string, (color: string) => React.ReactElement> = {
   index: (c) => <HomeIcon color={c} />,
-  resources: (c) => <SearchIcon color={c} />,
   tools: (c) => <GridIcon color={c} />,
-  vault: (c) => <LockIcon color={c} />,
 };
 
 export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -104,7 +87,6 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
     router.replace('/stealth');
   }
 
-  // Tint over the blur keeps icons/labels legible above busy content
   const barBg = theme.dark ? 'rgba(42,38,24,0.72)' : 'rgba(245,241,232,0.72)';
 
   return (
@@ -122,8 +104,10 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
         pointerEvents="none"
       />
 
-      {/* Tab buttons */}
+      {/* Tab buttons (Home and Tools only) */}
       {state.routes.map((route, index) => {
+        if (route.name !== 'index' && route.name !== 'tools') return null;
+
         const isFocused = state.index === index;
         const label = TABS.find(t => t.name === route.name)?.label ?? route.name;
         const renderIcon = ICON_MAP[route.name];
@@ -154,19 +138,21 @@ export function GlassTabBar({ state, descriptors, navigation }: BottomTabBarProp
         );
       })}
 
-      {/* Quick Exit — lives in the tab bar, rightmost */}
-      <Pressable
-        onPress={handleExit}
-        style={styles.exitBtn}
-        accessibilityLabel="Quick exit"
-        accessibilityRole="button"
-        hitSlop={10}
-      >
-        <View style={styles.exitInner}>
-          <View style={[styles.arm, styles.armA]} />
-          <View style={[styles.arm, styles.armB]} />
-        </View>
-      </Pressable>
+      {/* Quick Exit (Rightmost symmetrical column) */}
+      <View style={styles.exitContainer}>
+        <Pressable
+          onPress={handleExit}
+          style={styles.exitBtn}
+          accessibilityLabel="Quick exit"
+          accessibilityRole="button"
+          hitSlop={10}
+        >
+          <View style={styles.exitInner}>
+            <View style={[styles.arm, styles.armA]} />
+            <View style={[styles.arm, styles.armB]} />
+          </View>
+        </Pressable>
+      </View>
     </BlurView>
   );
 }
@@ -183,6 +169,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     gap: 2,
     position: 'relative',
+    zIndex: 9999, // Safely float above Skia mesh canvas
   },
   pill: {
     position: 'absolute',
@@ -210,6 +197,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     letterSpacing: 0,
   },
+  exitContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 38,
+    zIndex: 1,
+  },
   exitBtn: {
     width: 38,
     height: 38,
@@ -218,7 +212,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
-    zIndex: 1,
   },
   exitInner: {
     width: ARM + 4,

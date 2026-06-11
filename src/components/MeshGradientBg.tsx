@@ -1,45 +1,28 @@
-import React from 'react';
-import { StyleSheet, View, type ViewStyle, type StyleProp } from 'react-native';
-import { type SharedValue } from 'react-native-reanimated';
-import { LightTheme, DarkTheme } from '@theme/colors';
+import React, { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { Canvas, Circle, Group, BlurMask } from '@shopify/react-native-skia';
+import { useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 
-interface MeshLayerProps {
-  style?: StyleProp<ViewStyle>;
-  dark?: boolean;
-  scrollY?: SharedValue<number>;
-  meshRgb?: string;
-}
+export function MeshGradientBg() {
+  // 3 useSharedValue variables for X-axis movement
+  const cx1 = useSharedValue(100);
+  const cx2 = useSharedValue(200);
+  const cx3 = useSharedValue(300);
 
-let SkiaMeshLayer: React.ComponentType<MeshLayerProps> | null = null;
+  useEffect(() => {
+    cx1.value = withRepeat(withTiming(300, { duration: 12000 }), -1, true);
+    cx2.value = withRepeat(withTiming(100, { duration: 16000 }), -1, true);
+    cx3.value = withRepeat(withTiming(250, { duration: 14000 }), -1, true);
+  }, []);
 
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { SkiaMeshLayerImpl } = require('./MeshGradientBg.skia') as {
-    SkiaMeshLayerImpl: React.ComponentType<MeshLayerProps>;
-  };
-  SkiaMeshLayer = SkiaMeshLayerImpl;
-} catch {
-  // Skia not available — static fallback below
-}
-
-export function MeshGradientBg({ style, dark, scrollY, meshRgb }: MeshLayerProps) {
-  const base = dark ? DarkTheme.background : LightTheme.background;
   return (
-    <View style={[styles.container, { backgroundColor: base }, style]}>
-      {SkiaMeshLayer ? (
-        <SkiaMeshLayer
-          style={StyleSheet.absoluteFill}
-          dark={dark}
-          scrollY={scrollY}
-          meshRgb={meshRgb}
-        />
-      ) : null}
-    </View>
+    <Canvas style={[StyleSheet.absoluteFillObject, { backgroundColor: '#F7F5F0' }]}>
+      <Group>
+        <BlurMask blur={120} style="normal" />
+        <Circle cx={cx1} cy={200} r={200} color="rgba(45, 30, 61, 0.15)" />
+        <Circle cx={cx2} cy={600} r={250} color="rgba(217, 119, 87, 0.10)" />
+        <Circle cx={cx3} cy={400} r={150} color="rgba(45, 30, 61, 0.12)" />
+      </Group>
+    </Canvas>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-  },
-});

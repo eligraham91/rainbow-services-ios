@@ -23,6 +23,14 @@ import { PrivacyOverlay } from '@components/PrivacyOverlay';
 import { MeshGradientBg } from '@components/MeshGradientBg';
 import { ThemeProvider, useTheme } from '@theme/ThemeContext';
 import { ScrollOffsetProvider, useScrollOffset } from '@components/ScrollContext';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withDelay,
+} from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 
 function ShakeWatcher() {
   useShakeToExit();
@@ -32,6 +40,23 @@ function ShakeWatcher() {
 function AppShell() {
   const { theme, meshRgb } = useTheme();
   const scrollY = useScrollOffset();
+
+  // Cinematic launch mask animations (Nike-style scale-and-reveal)
+  const maskScale = useSharedValue(1);
+  const maskOpacity = useSharedValue(1);
+
+  useEffect(() => {
+    maskScale.value = withSequence(
+      withTiming(0.9, { duration: 300 }),
+      withTiming(20, { duration: 800 })
+    );
+    maskOpacity.value = withDelay(400, withTiming(0, { duration: 600 }));
+  }, []);
+
+  const maskStyle = useAnimatedStyle(() => ({
+    opacity: maskOpacity.value,
+    transform: [{ scale: maskScale.value }],
+  }));
 
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(response => {
@@ -49,7 +74,7 @@ function AppShell() {
   return (
     <View style={[styles.root, { backgroundColor: theme.background }]}>
       <StatusBar style={theme.dark ? 'light' : 'dark'} />
-      <MeshGradientBg dark={theme.dark} scrollY={scrollY} meshRgb={meshRgb} />
+      <MeshGradientBg />
       <ShakeWatcher />
       <Stack
         screenOptions={{
@@ -65,6 +90,35 @@ function AppShell() {
         <Stack.Screen name="stealth" options={{ headerShown: false, animation: 'none' }} />
       </Stack>
       <PrivacyOverlay />
+
+      {/* Cinematic "Scale & Reveal" Launch Mask */}
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFillObject,
+          {
+            backgroundColor: '#1A1124',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 9999,
+          },
+          maskStyle,
+        ]}
+      >
+        <Svg width={120} height={120} viewBox="0 0 100 100" fill="none">
+          <Path
+            d="M50 15 L80 30 V60 C80 75 68 85 50 90 C32 85 20 75 20 60 V30 L50 15 Z"
+            stroke="#FFFFFF"
+            strokeWidth={4}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <Path
+            d="M38 48 C42 42, 58 42, 62 48 C66 54, 50 68, 50 68 C50 68, 34 54, 38 48 Z"
+            fill="#FFFFFF"
+          />
+        </Svg>
+      </Animated.View>
     </View>
   );
 }
