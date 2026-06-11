@@ -2,3 +2,30 @@ node_modules/
 dist/
 .netlify/
 *.log
+
+# Expo
+.expo/
+ios/
+android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# EAS
+.eas/
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# macOS
+.DS_Store
+
+# TypeScript
+*.tsbuildinfo
+dist-check/

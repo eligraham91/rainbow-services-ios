@@ -1,0 +1,70 @@
+name: EAS Preview Update
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  preview:
+    name: EAS OTA Preview
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish OTA preview update
+        id: eas-update
+        run: |
+          eas update \
+            --branch pr-${{ github.event.pull_request.number }} \
+            --message "PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}" \
+            --non-interactive
+
+      - name: Post preview link to PR
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const projectId = 'bc49c954-3b0b-4ee4-b0b8-eb37eed61b4a';
+            const branch = `pr-${prNumber}`;
+            const dashboardUrl = `https://expo.dev/accounts/eligraham91/projects/rainbow-ios/updates?branch=${branch}`;
+            const body = [
+              `## 📱 Preview Update Published`,
+              ``,
+              `OTA update pushed to Expo branch \`${branch}\`.`,
+              ``,
+              `**Open in Expo Go:** launch the app — it will pull this update automatically on next refresh.`,
+              ``,
+              `**Or view on Expo dashboard:** ${dashboardUrl}`,
+              ``,
+              `> Runtime: \`exposdk:54.0.0\` · compatible with Expo Go 54.x`,
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt(prNumber),
+              body,
+            });
